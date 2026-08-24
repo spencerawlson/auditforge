@@ -178,9 +178,16 @@ The **Readiness** panel separates two things:
 
 ## 9. Preview and finalize
 
-**Preview PDF** renders the current version and shows it in the window. Every page carries
-the version label, so a draft can never be mistaken for an issued report. The preview never
-touches the disk.
+**Preview** shows the report's content and structure inside the window, without writing
+anything to disk.
+
+**Open the PDF** renders the real document, writes it to your exports folder and opens it in
+your system PDF viewer. That is where pagination, headers and footers appear exactly as a
+reader will see them. (The preview is HTML rather than an embedded PDF because the web view
+on Linux has no built-in PDF viewer; showing you a blank frame would be worse than being
+clear about it.)
+
+Every page carries the version label, so a draft can never be mistaken for an issued report.
 
 **Submit for review** moves the report to `v0.n Review`. It is still editable.
 

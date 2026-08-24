@@ -163,37 +163,47 @@ pub async fn delete_report(state: State<'_, AppState>, id: String) -> CommandRes
 
 // ------------------------------------------------------------------ preview and export
 
-/// Render the report to PDF and return the bytes for the in-app preview.
+/// The report rendered as a self-contained HTML page, for the in-app preview.
 ///
-/// Base64 rather than a temporary file: the preview never touches the disk, so a draft
-/// containing client material does not leave a copy behind in `/tmp`.
-#[derive(Serialize)]
-pub struct PreviewedPdf {
-    pub filename: String,
-    pub base64: String,
-    pub byte_size: usize,
-}
-
+/// HTML rather than PDF: WebKitGTK, the web view on the Linux target, has no built-in PDF
+/// viewer, so an embedded PDF would show a blank frame there. Returned as a string rather
+/// than written to a temporary file, so a draft containing client material does not leave
+/// a copy behind in `/tmp`.
 #[tauri::command]
-pub async fn preview_report_pdf(
+pub async fn preview_report_html(
     state: State<'_, AppState>,
     id: String,
     version_id: Option<String>,
-) -> CommandResult<PreviewedPdf> {
+) -> CommandResult<String> {
+    state.actor()?;
+    let app = state.app.clone();
+    blocking(move || {
+        let version = app.report_version(&id, version_id.as_deref())?;
+        let template = app
+            .db
+            .with_conn(|conn| templates::get(conn, &version.content.template_key))
+            .ok();
+        Ok(auditforge_core::export::to_html(
+            &version.content,
+            template.as_ref(),
+        ))
+    })
+    .await
+}
+
+/// Render the PDF into the exports directory and return its path, so the caller can open
+/// it in the platform's own viewer. This does write a file; the UI says so.
+#[tauri::command]
+pub async fn render_pdf_for_viewing(
+    state: State<'_, AppState>,
+    id: String,
+    version_id: Option<String>,
+) -> CommandResult<String> {
     let actor = state.actor()?;
     let app = state.app.clone();
     blocking(move || {
-        use base64::Engine;
-        let version = app.report_version(&id, version_id.as_deref())?;
-        let bytes = app.render_pdf(&actor, &id, version_id.as_deref())?;
-        Ok(PreviewedPdf {
-            filename: auditforge_core::export::suggested_filename(
-                &version.content,
-                ExportFormat::Pdf,
-            ),
-            base64: base64::engine::general_purpose::STANDARD.encode(&bytes),
-            byte_size: bytes.len(),
-        })
+        let path = app.export_to_disk(&actor, &id, version_id.as_deref(), ExportFormat::Pdf)?;
+        Ok(path.display().to_string())
     })
     .await
 }

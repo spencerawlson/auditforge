@@ -1396,7 +1396,8 @@ a:hover {
   height: 72vh;
   border: 1px solid var(--line);
   border-radius: var(--radius-sm);
-  background: var(--surface-sunken);
+  /* The preview renders the exported page, which sets its own light background. */
+  background: #fff;
 }
 
 .search-results {

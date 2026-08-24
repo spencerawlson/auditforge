@@ -48,7 +48,6 @@ import type {
   Postmortem,
   PostmortemCompletion,
   PostmortemUpdate,
-  PreviewedPdf,
   ProfileUpdate,
   RedactionPreview,
   Report,
@@ -228,8 +227,10 @@ export const api = {
   deleteReport: (id: string) => call<void>("delete_report", { id }),
 
   // ------------------------------------------------------------ preview and export
-  previewReportPdf: (id: string, versionId?: string) =>
-    call<PreviewedPdf>("preview_report_pdf", { id, versionId: versionId ?? null }),
+  previewReportHtml: (id: string, versionId?: string) =>
+    call<string>("preview_report_html", { id, versionId: versionId ?? null }),
+  renderPdfForViewing: (id: string, versionId?: string) =>
+    call<string>("render_pdf_for_viewing", { id, versionId: versionId ?? null }),
   exportFilename: (id: string, format: ExportFormat, versionId?: string) =>
     call<string>("export_filename", { id, format, versionId: versionId ?? null }),
   exportReport: (id: string, format: ExportFormat, versionId?: string) =>

@@ -340,9 +340,17 @@ export function ExportPanel({ workspace }: { workspace: ReportWorkspace }) {
   const toast = useToast();
   const [preview, setPreview] = useState<string | null>(null);
 
-  const [renderPreview, previewState] = useAction(async () => {
-    const rendered = await api.previewReportPdf(workspace.report.id);
-    return `data:application/pdf;base64,${rendered.base64}`;
+  // The inline preview renders the HTML export rather than the PDF: WebKitGTK, the web
+  // view on Linux, has no built-in PDF viewer, so an embedded PDF would be a blank frame
+  // there. The PDF itself opens in the platform's own viewer, below.
+  const [renderPreview, previewState] = useAction(async () =>
+    api.previewReportHtml(workspace.report.id),
+  );
+
+  const [openPdf, openPdfState] = useAction(async () => {
+    const path = await api.renderPdfForViewing(workspace.report.id);
+    await openPath(path);
+    return path;
   });
 
   const [exportAs, exportState] = useAction(async (format: ExportFormat) => {
@@ -358,16 +366,32 @@ export function ExportPanel({ workspace }: { workspace: ReportWorkspace }) {
         <Button
           busy={previewState.busy}
           onClick={async () => {
-            const url = await renderPreview();
-            if (url) setPreview(url);
+            const html = await renderPreview();
+            if (html) setPreview(html);
           }}
         >
-          Preview PDF
+          Preview
         </Button>
+
+        <Button
+          busy={openPdfState.busy}
+          onClick={async () => {
+            const path = await openPdf();
+            if (path) toast.push(`PDF written to ${path} and opened in your viewer.`);
+          }}
+        >
+          Open the PDF
+        </Button>
+
+        <p className="tiny muted">
+          Preview shows the content and structure in the window. “Open the PDF” renders the
+          real document, writes it to your exports folder and opens it in your PDF viewer —
+          that is where pagination, headers and footers are exactly as a reader sees them.
+        </p>
 
         {workspace.version.status !== "final" && (
           <p className="tiny muted">
-            You are previewing {workspace.version.version_label}. Every page carries the version
+            You are working on {workspace.version.version_label}. Every page carries the version
             label, so a draft can never be mistaken for an issued report.
           </p>
         )}
@@ -393,9 +417,9 @@ export function ExportPanel({ workspace }: { workspace: ReportWorkspace }) {
           ))}
         </div>
 
-        {(previewState.error || exportState.error) && (
+        {(previewState.error || exportState.error || openPdfState.error) && (
           <Notice tone="danger">
-            {(previewState.error ?? exportState.error)?.message}
+            {(previewState.error ?? exportState.error ?? openPdfState.error)?.message}
           </Notice>
         )}
       </div>
@@ -408,16 +432,10 @@ export function ExportPanel({ workspace }: { workspace: ReportWorkspace }) {
           footer={
             <>
               <Button
+                busy={exportState.busy}
                 onClick={async () => {
                   const path = await exportAs("pdf");
-                  if (path) {
-                    toast.success(`Saved to ${path}`);
-                    try {
-                      await openPath(path);
-                    } catch {
-                      // Opening is a convenience; the file is saved either way.
-                    }
-                  }
+                  if (path) toast.success(`Saved to ${path}`);
                 }}
               >
                 Save PDF
@@ -428,7 +446,14 @@ export function ExportPanel({ workspace }: { workspace: ReportWorkspace }) {
             </>
           }
         >
-          <iframe className="pdf-frame" src={preview} title="Report preview" />
+          {/* Sandboxed and same-origin-free: the preview is report content and is never
+              given the privileges of the application window. */}
+          <iframe
+            className="pdf-frame"
+            srcDoc={preview}
+            sandbox=""
+            title={`Preview of ${workspace.report.report_ref}`}
+          />
         </Modal>
       )}
     </Card>

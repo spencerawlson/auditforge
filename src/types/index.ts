@@ -777,12 +777,6 @@ export interface ReportWorkspace {
   history: ReportVersionSummary[];
 }
 
-export interface PreviewedPdf {
-  filename: string;
-  base64: string;
-  byte_size: number;
-}
-
 // ---------------------------------------------------------------- AI
 
 export interface AiStatus {
