@@ -25,6 +25,7 @@ import {
   Tabs,
   TextAreaField,
   TextField,
+  UnsavedBar,
 } from "@/components/ui";
 import { useSession } from "@/features/auth/SessionProvider";
 import { useAction, useAsync } from "@/hooks/useAsync";
@@ -177,10 +178,16 @@ function ProfileTab() {
 function SecurityTab({ value }: { value: SecuritySettings }) {
   const toast = useToast();
   const { applySettings } = useSession();
+  const stored = JSON.stringify(value);
   const [form, setForm] = useState(value);
   const [current, setCurrent] = useState("");
   const [next, setNext] = useState("");
   const [confirm, setConfirm] = useState("");
+
+  // Adopt stored settings only when their content actually changes, so an unrelated
+  // refresh cannot discard what the user is part-way through editing.
+  useEffect(() => setForm(JSON.parse(stored)), [stored]);
+  const dirty = JSON.stringify(form) !== stored;
 
   const [save, saveState] = useAction(async () => {
     applySettings(await api.saveSecuritySettings(form));
@@ -242,15 +249,6 @@ function SecurityTab({ value }: { value: SecuritySettings }) {
             label="Warn before importing executables or scripts"
             hint="AuditForge never runs evidence; this controls the warning only."
           />
-          <div>
-            <Button
-              variant="primary"
-              busy={saveState.busy}
-              onClick={() => void save().then((ok) => ok && toast.success("Security settings saved"))}
-            >
-              Save
-            </Button>
-          </div>
         </div>
       </Card>
 
@@ -314,6 +312,16 @@ function SecurityTab({ value }: { value: SecuritySettings }) {
           </div>
         </div>
       </Card>
+
+      <div style={{ gridColumn: "1 / -1" }}>
+        <UnsavedBar
+          dirty={dirty}
+          busy={saveState.busy}
+          label="Save security settings"
+          onDiscard={() => setForm(JSON.parse(stored))}
+          onSave={() => void save().then((ok) => ok && toast.success("Security settings saved"))}
+        />
+      </div>
     </div>
   );
 }
@@ -341,11 +349,15 @@ const PROVIDERS: Array<{ value: AiProviderKind; label: string; blurb: string }> 
 function AiTab({ value }: { value: AiSettings }) {
   const toast = useToast();
   const { applySettings } = useSession();
+  const stored = JSON.stringify(value);
   const [form, setForm] = useState(value);
   const [apiKey, setApiKey] = useState("");
   const status = useAsync(() => api.aiStatus(), [value]);
 
-  useEffect(() => setForm(value), [value]);
+  // Adopt stored settings only when their content actually changes. Comparing identity
+  // would reset the form on any unrelated refresh and silently drop a pending change.
+  useEffect(() => setForm(JSON.parse(stored)), [stored]);
+  const dirty = JSON.stringify(form) !== stored;
 
   const [save, saveState] = useAction(async () => {
     applySettings(await api.saveAiSettings(form));
@@ -424,6 +436,14 @@ function AiTab({ value }: { value: AiSettings }) {
               </button>
             ))}
           </div>
+
+          {dirty && (
+            <Notice tone="info" title="Not applied yet">
+              Choosing a provider changes the form only. Press{" "}
+              <span className="strong">Save AI settings</span> at the bottom of this screen to
+              apply it.
+            </Notice>
+          )}
 
           {form.provider === "openai" && (
             <Notice tone="warning" title="Cloud processing sends report text to OpenAI">
@@ -557,16 +577,15 @@ function AiTab({ value }: { value: AiSettings }) {
           />
         </div>
         {saveState.error && <Notice tone="danger">{saveState.error.message}</Notice>}
-        <div style={{ marginTop: 14 }}>
-          <Button
-            variant="primary"
-            busy={saveState.busy}
-            onClick={() => void save().then((ok) => ok && toast.success("AI settings saved"))}
-          >
-            Save AI settings
-          </Button>
-        </div>
       </Card>
+
+      <UnsavedBar
+        dirty={dirty}
+        busy={saveState.busy}
+        label="Save AI settings"
+        onDiscard={() => setForm(JSON.parse(stored))}
+        onSave={() => void save().then((ok) => ok && toast.success("AI settings saved"))}
+      />
 
       <Notice tone="neutral" title="What the assistant will not do">
         It does not set severity, invent IP addresses, hostnames, CVEs, CVSS scores, timestamps or
@@ -583,9 +602,15 @@ function AiTab({ value }: { value: AiSettings }) {
 function ReportsTab({ value, ui }: { value: ReportSettings; ui: UiSettings }) {
   const toast = useToast();
   const { applySettings } = useSession();
+  const stored = JSON.stringify(value);
+  const storedUi = JSON.stringify(ui);
   const [form, setForm] = useState(value);
   const [uiForm, setUiForm] = useState(ui);
   const templates = useAsync(() => api.listTemplates(), []);
+
+  useEffect(() => setForm(JSON.parse(stored)), [stored]);
+  useEffect(() => setUiForm(JSON.parse(storedUi)), [storedUi]);
+  const dirty = JSON.stringify(form) !== stored || JSON.stringify(uiForm) !== storedUi;
 
   const [save, saveState] = useAction(async () => {
     applySettings(await api.saveReportSettings(form));
@@ -695,17 +720,21 @@ function ReportsTab({ value, ui }: { value: ReportSettings; ui: UiSettings }) {
             hint="Fits more into lists at a slightly smaller size."
           />
           {saveState.error && <Notice tone="danger">{saveState.error.message}</Notice>}
-          <div>
-            <Button
-              variant="primary"
-              busy={saveState.busy}
-              onClick={() => void save().then((ok) => ok && toast.success("Settings saved"))}
-            >
-              Save
-            </Button>
-          </div>
         </div>
       </Card>
+
+      <div style={{ gridColumn: "1 / -1" }}>
+        <UnsavedBar
+          dirty={dirty}
+          busy={saveState.busy}
+          label="Save report settings"
+          onDiscard={() => {
+            setForm(JSON.parse(stored));
+            setUiForm(JSON.parse(storedUi));
+          }}
+          onSave={() => void save().then((ok) => ok && toast.success("Settings saved"))}
+        />
+      </div>
     </div>
   );
 }

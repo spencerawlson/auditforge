@@ -340,6 +340,40 @@ export function KeyValues({ items }: { items: Array<[string, ReactNode]> }) {
   );
 }
 
+/**
+ * A save bar that follows the user down a settings screen while changes are pending.
+ *
+ * Exists because a Save button sitting at the bottom of one card is easy to miss when the
+ * control you just changed is at the top of another - which is how a selected AI provider
+ * could look active while never having been written.
+ */
+export function UnsavedBar({
+  dirty,
+  busy,
+  label,
+  onSave,
+  onDiscard,
+}: {
+  dirty: boolean;
+  busy?: boolean;
+  label: string;
+  onSave: () => void;
+  onDiscard: () => void;
+}) {
+  if (!dirty) return null;
+  return (
+    <div className="savebar" role="status">
+      <span className="savebar__text">You have unsaved changes.</span>
+      <Button variant="ghost" size="sm" onClick={onDiscard} disabled={busy}>
+        Discard
+      </Button>
+      <Button variant="primary" busy={busy} onClick={onSave}>
+        {label}
+      </Button>
+    </div>
+  );
+}
+
 export function Stat({ value, label }: { value: ReactNode; label: string }) {
   return (
     <div className="card stat">

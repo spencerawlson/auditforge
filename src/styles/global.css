@@ -1367,6 +1367,30 @@ a:hover {
   color: var(--faint);
 }
 
+/* Sticks to the bottom of the scrolling content area while changes are pending, so an
+   unsaved setting cannot slip past whatever card the user happens to be looking at. */
+.savebar {
+  position: sticky;
+  bottom: 12px;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 18px;
+  padding: 10px 14px;
+  border: 1px solid var(--accent);
+  border-radius: var(--radius);
+  background: var(--surface-raised);
+  box-shadow: var(--shadow-lg);
+}
+
+.savebar__text {
+  flex: 1;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--ink-strong);
+}
+
 .privacy {
   display: inline-flex;
   align-items: center;
