@@ -159,28 +159,35 @@ is portable and Windows works. Windows 10 1803+ or Windows 11, with the Edge Web
 runtime (present by default on Windows 11).
 
 ```powershell
-# Build the installer
-npm ci
-npx tauri build --bundles nsis
-
-# Then run it
-.\src-tauri\target\release\bundle\nsis\AuditForge_0.1.0_x64-setup.exe
+.\scripts\build-windows.ps1
 ```
 
-Or use the standalone executable at `src-tauri\target\release\auditforge.exe`, which needs
-no installation.
+That checks the toolchain, runs the tests, builds, and produces
+`target\release\bundle\nsis\AuditForge_0.1.0_x64-setup.exe`. Install it by running it, or
+silently for the current user:
+
+```powershell
+Start-Process .\target\release\bundle\nsis\AuditForge_0.1.0_x64-setup.exe -ArgumentList "/S" -Wait
+```
+
+It installs to `%LOCALAPPDATA%\AuditForge` with a Start Menu entry, and appears in
+**Settings → Apps** for removal. Uninstalling does not touch your data.
 
 Data lives in `%APPDATA%\AuditForge`. The API key goes into Windows Credential Manager.
 
-Uninstall through **Settings → Apps**, or delete the executable. Neither removes
-`%APPDATA%\AuditForge`.
+Three differences from Linux worth knowing:
 
-Two differences from Linux worth knowing:
-
-- The `.deb` and AppImage targets in `tauri.conf.json` are Linux-only, which is why the
-  Windows build passes `--bundles nsis` explicitly.
-- File permissions are inherited from the per-user AppData ACL rather than set with mode
-  bits; the evidence vault is owner-only either way, but by a different mechanism.
+- The `.deb` and AppImage targets in `tauri.conf.json` are Linux-only. The Windows build
+  layers `src-tauri\tauri.windows.conf.json` over it for the NSIS target.
+- **Use `scripts\build-windows.ps1` rather than a bare `tauri build`.** With the MSVC
+  toolchain the WebView2 loader is linked statically and the executable is self-contained;
+  with the GNU toolchain it becomes a `WebView2Loader.dll` dependency that the bundler does
+  not pick up on its own. The script stages it so the installer ships it. Skip that and the
+  installed application exits immediately with `0xC0000135` (STATUS_DLL_NOT_FOUND) and no
+  window ever appears — it will still run from `target\release`, where the DLL happens to
+  sit beside it, which makes the fault easy to miss.
+- File permissions come from the per-user AppData ACL rather than mode bits; the evidence
+  vault is owner-only either way, by a different mechanism.
 
 ## First run
 

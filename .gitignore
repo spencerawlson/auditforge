@@ -32,3 +32,6 @@ src-tauri/gen/
 .idea/
 .DS_Store
 Thumbs.db
+
+# Staged by scripts/build-windows.ps1 for the Windows installer; produced by the build.
+src-tauri/WebView2Loader.dll
