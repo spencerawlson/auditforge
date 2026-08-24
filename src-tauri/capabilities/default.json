@@ -1,0 +1,14 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "default",
+  "description": "Permissions granted to the AuditForge main window. Deliberately narrow: the frontend may open a file picker, save a file the user chose, and open a document the user asked to open. It has no shell, no filesystem and no HTTP access of its own - everything else goes through a command.",
+  "windows": ["main"],
+  "permissions": [
+    "core:default",
+    "dialog:allow-open",
+    "dialog:allow-save",
+    "dialog:allow-message",
+    "dialog:allow-confirm",
+    "opener:allow-open-path"
+  ]
+}

@@ -1,0 +1,347 @@
+{
+  "key": "incident_report",
+  "name": "Incident Report",
+  "report_type": "incident_report",
+  "version": 1,
+  "description": "Factual record of a security incident, its impact and the response.",
+  "default_classification": "restricted",
+  "sections": [
+    {
+      "key": "executive_summary",
+      "title": "Executive Summary",
+      "order": 1,
+      "kind": "guided",
+      "required": true,
+      "guidance": "Written for a decision maker. Every statement here must be supported by detail elsewhere in the report.",
+      "questions": [
+        {
+          "key": "exec_purpose",
+          "label": "What was assessed, and why?",
+          "help": "One or two sentences a non-technical reader can follow. Name the system or environment and the reason the work was requested.",
+          "input": "textarea",
+          "required": true,
+          "placeholder": "Describe the target and the business reason for the incident."
+        },
+        {
+          "key": "exec_outcome",
+          "label": "What is the overall result?",
+          "help": "State the headline outcome in plain language. Do not introduce findings that are not recorded elsewhere in the report.",
+          "input": "textarea",
+          "required": true,
+          "placeholder": ""
+        },
+        {
+          "key": "exec_key_risks",
+          "label": "What are the most important risks to act on?",
+          "help": "Summarise the highest-severity findings. Leave blank if there are none; do not invent risks to fill the section.",
+          "input": "textarea",
+          "required": false,
+          "placeholder": ""
+        },
+        {
+          "key": "exec_next_steps",
+          "label": "What should happen next?",
+          "help": "The one to three actions the reader should take away.",
+          "input": "textarea",
+          "required": false,
+          "placeholder": ""
+        }
+      ]
+    },
+    {
+      "key": "incident_overview",
+      "title": "Incident Overview",
+      "order": 2,
+      "kind": "guided",
+      "required": true,
+      "guidance": "",
+      "questions": [
+        {
+          "key": "incident_what",
+          "label": "What happened?",
+          "help": "Plain language, factual. Stick to what is known.",
+          "input": "textarea",
+          "required": true,
+          "placeholder": ""
+        },
+        {
+          "key": "incident_when",
+          "label": "When did it happen, and when was it detected?",
+          "help": "Include time zones. If a time is unknown, say so rather than estimating.",
+          "input": "textarea",
+          "required": true,
+          "placeholder": ""
+        },
+        {
+          "key": "incident_classification",
+          "label": "How was the incident classified?",
+          "help": "Category and severity, and who decided.",
+          "input": "textarea",
+          "required": false,
+          "placeholder": ""
+        }
+      ]
+    },
+    {
+      "key": "detection",
+      "title": "Detection",
+      "order": 3,
+      "kind": "guided",
+      "required": false,
+      "guidance": "",
+      "questions": [
+        {
+          "key": "detection_method",
+          "label": "How was it detected?",
+          "help": "Alert, report, routine review, third party. Name the source.",
+          "input": "textarea",
+          "required": true,
+          "placeholder": ""
+        },
+        {
+          "key": "detection_gaps",
+          "label": "What should have detected it, and did not?",
+          "help": "Only if known. Leave blank rather than speculating.",
+          "input": "textarea",
+          "required": false,
+          "placeholder": ""
+        }
+      ]
+    },
+    {
+      "key": "affected_systems",
+      "title": "Affected Systems",
+      "order": 4,
+      "kind": "guided",
+      "required": true,
+      "guidance": "",
+      "questions": [
+        {
+          "key": "affected_list",
+          "label": "What systems, data and users were affected?",
+          "help": "Be specific. Include systems confirmed unaffected if that matters.",
+          "input": "textarea",
+          "required": true,
+          "placeholder": ""
+        },
+        {
+          "key": "affected_data",
+          "label": "What data was involved?",
+          "help": "Type, volume and sensitivity. If exposure is unconfirmed, say that.",
+          "input": "textarea",
+          "required": false,
+          "placeholder": ""
+        }
+      ]
+    },
+    {
+      "key": "impact",
+      "title": "Impact",
+      "order": 5,
+      "kind": "guided",
+      "required": true,
+      "guidance": "",
+      "questions": [
+        {
+          "key": "impact_operational",
+          "label": "What was the operational impact?",
+          "help": "Downtime, degraded service, manual workarounds.",
+          "input": "textarea",
+          "required": true,
+          "placeholder": ""
+        },
+        {
+          "key": "impact_business",
+          "label": "What was the business or regulatory impact?",
+          "help": "Customers affected, contractual or legal notification obligations.",
+          "input": "textarea",
+          "required": false,
+          "placeholder": ""
+        }
+      ]
+    },
+    {
+      "key": "timeline",
+      "title": "Timeline",
+      "order": 6,
+      "kind": "guided",
+      "required": false,
+      "guidance": "",
+      "questions": [
+        {
+          "key": "timeline_events",
+          "label": "What is the timeline?",
+          "help": "Ordered sequence with timestamps: first activity, detection, escalation, containment, eradication, recovery, closure.",
+          "input": "textarea",
+          "required": true,
+          "placeholder": ""
+        }
+      ]
+    },
+    {
+      "key": "response_actions",
+      "title": "Response Actions",
+      "order": 7,
+      "kind": "guided",
+      "required": true,
+      "guidance": "",
+      "questions": [
+        {
+          "key": "response_containment",
+          "label": "What containment actions were taken?",
+          "help": "",
+          "input": "textarea",
+          "required": true,
+          "placeholder": ""
+        },
+        {
+          "key": "response_eradication",
+          "label": "What eradication and recovery actions were taken?",
+          "help": "",
+          "input": "textarea",
+          "required": false,
+          "placeholder": ""
+        },
+        {
+          "key": "response_comms",
+          "label": "Who was notified, and when?",
+          "help": "Internal escalation, customers, regulators, law enforcement.",
+          "input": "textarea",
+          "required": false,
+          "placeholder": ""
+        }
+      ]
+    },
+    {
+      "key": "root_cause",
+      "title": "Root Cause",
+      "order": 8,
+      "kind": "guided",
+      "required": false,
+      "guidance": "",
+      "questions": [
+        {
+          "key": "root_cause_analysis",
+          "label": "What was the root cause?",
+          "help": "If the cause is not established, write that it is not established. Do not present a hypothesis as a conclusion.",
+          "input": "textarea",
+          "required": true,
+          "placeholder": ""
+        },
+        {
+          "key": "contributing_factors",
+          "label": "What contributing factors were involved?",
+          "help": "",
+          "input": "textarea",
+          "required": false,
+          "placeholder": ""
+        }
+      ]
+    },
+    {
+      "key": "remediation",
+      "title": "Remediation",
+      "order": 9,
+      "kind": "guided",
+      "required": false,
+      "guidance": "",
+      "questions": [
+        {
+          "key": "remediation_priorities",
+          "label": "What should be fixed first?",
+          "help": "Ordered remediation. Reference findings by their identifier.",
+          "input": "textarea",
+          "required": true,
+          "placeholder": ""
+        },
+        {
+          "key": "remediation_effort",
+          "label": "What effort or dependencies are involved?",
+          "help": "Anything that affects sequencing: change windows, vendor involvement, cost.",
+          "input": "textarea",
+          "required": false,
+          "placeholder": ""
+        },
+        {
+          "key": "remediation_verification",
+          "label": "How will fixes be verified?",
+          "help": "Retest plan, acceptance criteria, who confirms.",
+          "input": "textarea",
+          "required": false,
+          "placeholder": ""
+        }
+      ]
+    },
+    {
+      "key": "recommendations",
+      "title": "Recommendations",
+      "order": 10,
+      "kind": "guided",
+      "required": false,
+      "guidance": "",
+      "questions": [
+        {
+          "key": "recommendations_strategic",
+          "label": "What longer-term changes are recommended?",
+          "help": "Improvements beyond fixing individual findings: process, monitoring, architecture, training.",
+          "input": "textarea",
+          "required": false,
+          "placeholder": ""
+        },
+        {
+          "key": "recommendations_quick_wins",
+          "label": "What can be improved immediately?",
+          "help": "Low-effort changes worth making now.",
+          "input": "textarea",
+          "required": false,
+          "placeholder": ""
+        }
+      ]
+    },
+    {
+      "key": "conclusion",
+      "title": "Conclusion",
+      "order": 11,
+      "kind": "guided",
+      "required": false,
+      "guidance": "",
+      "questions": [
+        {
+          "key": "conclusion_summary",
+          "label": "What is the conclusion?",
+          "help": "Close the report. Do not introduce new facts here.",
+          "input": "textarea",
+          "required": true,
+          "placeholder": ""
+        }
+      ]
+    },
+    {
+      "key": "evidence",
+      "title": "Evidence",
+      "order": 12,
+      "kind": "evidence",
+      "required": false,
+      "guidance": "Evidence attached to this report is listed with its reference, original filename and SHA-256 so a reader can verify it independently.",
+      "questions": []
+    },
+    {
+      "key": "appendix",
+      "title": "Appendix",
+      "order": 13,
+      "kind": "guided",
+      "required": false,
+      "guidance": "",
+      "questions": [
+        {
+          "key": "appendix_notes",
+          "label": "Anything else the reader needs?",
+          "help": "Supporting detail, raw output references, glossary, contact information.",
+          "input": "textarea",
+          "required": false,
+          "placeholder": ""
+        }
+      ]
+    }
+  ]
+}

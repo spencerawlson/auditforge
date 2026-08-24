@@ -1,0 +1,28 @@
+[package]
+name = "auditforge"
+description = "AuditForge - AI-assisted security, compliance and operations reporting"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+default-run = "auditforge"
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+auditforge-core.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+tracing.workspace = true
+tauri = { version = "2", features = [] }
+tauri-plugin-dialog = "2"
+tauri-plugin-opener = "2"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+base64 = "0.22"
+
+[features]
+# Enabled by `tauri build`; keeps the console window hidden on Windows.
+custom-protocol = ["tauri/custom-protocol"]

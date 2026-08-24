@@ -1,0 +1,217 @@
+{
+  "key": "postmortem",
+  "name": "Postmortem",
+  "report_type": "postmortem",
+  "version": 1,
+  "description": "Blameless postmortem covering what happened, why, and what changes.",
+  "default_classification": "internal",
+  "sections": [
+    {
+      "key": "summary",
+      "title": "Summary",
+      "order": 1,
+      "kind": "guided",
+      "required": true,
+      "guidance": "",
+      "questions": [
+        {
+          "key": "pm_what_happened",
+          "label": "What happened?",
+          "help": "A short, factual summary someone outside the team can follow.",
+          "input": "textarea",
+          "required": true,
+          "placeholder": ""
+        },
+        {
+          "key": "pm_when",
+          "label": "When did it happen?",
+          "help": "Start, detection and resolution times, with time zones.",
+          "input": "textarea",
+          "required": true,
+          "placeholder": ""
+        },
+        {
+          "key": "pm_detected",
+          "label": "How was it detected?",
+          "help": "",
+          "input": "textarea",
+          "required": true,
+          "placeholder": ""
+        }
+      ]
+    },
+    {
+      "key": "scope_impact",
+      "title": "Scope and Impact",
+      "order": 2,
+      "kind": "guided",
+      "required": true,
+      "guidance": "",
+      "questions": [
+        {
+          "key": "pm_systems",
+          "label": "What systems were affected?",
+          "help": "",
+          "input": "textarea",
+          "required": true,
+          "placeholder": ""
+        },
+        {
+          "key": "pm_impact",
+          "label": "What was the impact?",
+          "help": "Users affected, duration, data involved, financial or contractual effect.",
+          "input": "textarea",
+          "required": true,
+          "placeholder": ""
+        }
+      ]
+    },
+    {
+      "key": "timeline",
+      "title": "Timeline",
+      "order": 3,
+      "kind": "guided",
+      "required": false,
+      "guidance": "",
+      "questions": [
+        {
+          "key": "timeline_events",
+          "label": "What is the timeline?",
+          "help": "Timestamped sequence from first symptom to resolution.",
+          "input": "textarea",
+          "required": true,
+          "placeholder": ""
+        }
+      ]
+    },
+    {
+      "key": "analysis",
+      "title": "Analysis",
+      "order": 4,
+      "kind": "guided",
+      "required": true,
+      "guidance": "",
+      "questions": [
+        {
+          "key": "pm_root_cause",
+          "label": "What was the root cause?",
+          "help": "If it is not yet established, say so. An unproven theory is not a root cause.",
+          "input": "textarea",
+          "required": true,
+          "placeholder": ""
+        },
+        {
+          "key": "pm_actions_taken",
+          "label": "What actions were taken?",
+          "help": "",
+          "input": "textarea",
+          "required": true,
+          "placeholder": ""
+        }
+      ]
+    },
+    {
+      "key": "reflection",
+      "title": "What We Learned",
+      "order": 5,
+      "kind": "guided",
+      "required": true,
+      "guidance": "",
+      "questions": [
+        {
+          "key": "pm_went_well",
+          "label": "What went well?",
+          "help": "",
+          "input": "textarea",
+          "required": true,
+          "placeholder": ""
+        },
+        {
+          "key": "pm_went_badly",
+          "label": "What did not go well?",
+          "help": "",
+          "input": "textarea",
+          "required": true,
+          "placeholder": ""
+        },
+        {
+          "key": "pm_improve",
+          "label": "What could be improved?",
+          "help": "",
+          "input": "textarea",
+          "required": true,
+          "placeholder": ""
+        }
+      ]
+    },
+    {
+      "key": "corrective_actions",
+      "title": "Corrective Actions",
+      "order": 6,
+      "kind": "guided",
+      "required": true,
+      "guidance": "",
+      "questions": [
+        {
+          "key": "pm_corrective",
+          "label": "What corrective actions are required?",
+          "help": "One per line. Each needs an owner and a date.",
+          "input": "textarea",
+          "required": true,
+          "placeholder": ""
+        },
+        {
+          "key": "pm_owners",
+          "label": "Who owns each corrective action?",
+          "help": "",
+          "input": "textarea",
+          "required": true,
+          "placeholder": ""
+        },
+        {
+          "key": "pm_deadlines",
+          "label": "What are the deadlines?",
+          "help": "",
+          "input": "textarea",
+          "required": true,
+          "placeholder": ""
+        },
+        {
+          "key": "pm_verification",
+          "label": "How will remediation be verified?",
+          "help": "",
+          "input": "textarea",
+          "required": true,
+          "placeholder": ""
+        }
+      ]
+    },
+    {
+      "key": "conclusion",
+      "title": "Conclusion",
+      "order": 7,
+      "kind": "guided",
+      "required": false,
+      "guidance": "",
+      "questions": [
+        {
+          "key": "conclusion_summary",
+          "label": "What is the conclusion?",
+          "help": "Close the report. Do not introduce new facts here.",
+          "input": "textarea",
+          "required": true,
+          "placeholder": ""
+        }
+      ]
+    },
+    {
+      "key": "evidence",
+      "title": "Evidence",
+      "order": 8,
+      "kind": "evidence",
+      "required": false,
+      "guidance": "Evidence attached to this report is listed with its reference, original filename and SHA-256 so a reader can verify it independently.",
+      "questions": []
+    }
+  ]
+}

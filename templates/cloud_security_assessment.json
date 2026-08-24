@@ -1,0 +1,328 @@
+{
+  "key": "cloud_security_assessment",
+  "name": "Cloud Security Assessment",
+  "report_type": "cloud_security_assessment",
+  "version": 1,
+  "description": "Assessment of a cloud environment: identity, network, data and workload configuration.",
+  "default_classification": "confidential",
+  "sections": [
+    {
+      "key": "executive_summary",
+      "title": "Executive Summary",
+      "order": 1,
+      "kind": "guided",
+      "required": true,
+      "guidance": "Written for a decision maker. Every statement here must be supported by detail elsewhere in the report.",
+      "questions": [
+        {
+          "key": "exec_purpose",
+          "label": "What was assessed, and why?",
+          "help": "One or two sentences a non-technical reader can follow. Name the system or environment and the reason the work was requested.",
+          "input": "textarea",
+          "required": true,
+          "placeholder": "Describe the target and the business reason for the assessment."
+        },
+        {
+          "key": "exec_outcome",
+          "label": "What is the overall result?",
+          "help": "State the headline outcome in plain language. Do not introduce findings that are not recorded elsewhere in the report.",
+          "input": "textarea",
+          "required": true,
+          "placeholder": ""
+        },
+        {
+          "key": "exec_key_risks",
+          "label": "What are the most important risks to act on?",
+          "help": "Summarise the highest-severity findings. Leave blank if there are none; do not invent risks to fill the section.",
+          "input": "textarea",
+          "required": false,
+          "placeholder": ""
+        },
+        {
+          "key": "exec_next_steps",
+          "label": "What should happen next?",
+          "help": "The one to three actions the reader should take away.",
+          "input": "textarea",
+          "required": false,
+          "placeholder": ""
+        }
+      ]
+    },
+    {
+      "key": "scope",
+      "title": "Scope",
+      "order": 2,
+      "kind": "guided",
+      "required": true,
+      "guidance": "",
+      "questions": [
+        {
+          "key": "scope_in",
+          "label": "What was in scope?",
+          "help": "List systems, networks, applications, accounts or cloud subscriptions that were covered.",
+          "input": "textarea",
+          "required": true,
+          "placeholder": "10.0.0.0/24, app.example.internal, the production AWS account"
+        },
+        {
+          "key": "scope_out",
+          "label": "What was explicitly out of scope?",
+          "help": "Anything deliberately excluded. This protects both parties later.",
+          "input": "textarea",
+          "required": false,
+          "placeholder": ""
+        },
+        {
+          "key": "scope_limitations",
+          "label": "What limited the work?",
+          "help": "Time windows, credentials not provided, systems unavailable, testing restrictions. Say so plainly - unstated limitations become disputed findings.",
+          "input": "textarea",
+          "required": false,
+          "placeholder": ""
+        }
+      ]
+    },
+    {
+      "key": "objectives",
+      "title": "Objectives",
+      "order": 3,
+      "kind": "guided",
+      "required": false,
+      "guidance": "",
+      "questions": [
+        {
+          "key": "objectives_primary",
+          "label": "What were the objectives?",
+          "help": "What the work set out to determine or demonstrate.",
+          "input": "textarea",
+          "required": true,
+          "placeholder": ""
+        },
+        {
+          "key": "objectives_success",
+          "label": "How was success measured?",
+          "help": "The criteria used to judge whether the objectives were met.",
+          "input": "textarea",
+          "required": false,
+          "placeholder": ""
+        }
+      ]
+    },
+    {
+      "key": "cloud_environment",
+      "title": "Cloud Environment",
+      "order": 4,
+      "kind": "guided",
+      "required": true,
+      "guidance": "",
+      "questions": [
+        {
+          "key": "cloud_providers",
+          "label": "Which providers, accounts and regions are covered?",
+          "help": "Name accounts, subscriptions or projects and the regions in use.",
+          "input": "textarea",
+          "required": true,
+          "placeholder": ""
+        },
+        {
+          "key": "cloud_architecture",
+          "label": "How is the environment structured?",
+          "help": "Landing zone, organisational units, network layout, shared services.",
+          "input": "textarea",
+          "required": false,
+          "placeholder": ""
+        },
+        {
+          "key": "cloud_identity",
+          "label": "How is identity and access managed?",
+          "help": "Federation, roles, privileged access, service principals.",
+          "input": "textarea",
+          "required": false,
+          "placeholder": ""
+        }
+      ]
+    },
+    {
+      "key": "methodology",
+      "title": "Methodology",
+      "order": 5,
+      "kind": "guided",
+      "required": false,
+      "guidance": "",
+      "questions": [
+        {
+          "key": "methodology_approach",
+          "label": "How was the work carried out?",
+          "help": "Phases, techniques and the order they were performed in.",
+          "input": "textarea",
+          "required": true,
+          "placeholder": ""
+        },
+        {
+          "key": "methodology_standards",
+          "label": "What standards or frameworks were followed?",
+          "help": "For example the CIS Benchmarks for the provider, the provider's own well-architected security pillar, or NIST SP 800-53 mappings.",
+          "input": "textarea",
+          "required": false,
+          "placeholder": ""
+        },
+        {
+          "key": "methodology_tools",
+          "label": "What tools were used?",
+          "help": "Name the tools and versions where the version matters.",
+          "input": "textarea",
+          "required": false,
+          "placeholder": ""
+        }
+      ]
+    },
+    {
+      "key": "findings",
+      "title": "Findings",
+      "order": 6,
+      "kind": "findings",
+      "required": false,
+      "guidance": "Misconfigurations, excessive permissions, exposure and gaps against the chosen baseline.",
+      "questions": []
+    },
+    {
+      "key": "risk_analysis",
+      "title": "Risk Analysis",
+      "order": 7,
+      "kind": "guided",
+      "required": false,
+      "guidance": "",
+      "questions": [
+        {
+          "key": "risk_overall",
+          "label": "What is the overall risk position?",
+          "help": "Interpret the findings as a whole. Severity of individual findings is set on each finding, not here.",
+          "input": "textarea",
+          "required": true,
+          "placeholder": ""
+        },
+        {
+          "key": "risk_business",
+          "label": "What is the business exposure?",
+          "help": "Consequences in operational terms: downtime, data exposure, regulatory obligations, cost.",
+          "input": "textarea",
+          "required": false,
+          "placeholder": ""
+        },
+        {
+          "key": "risk_assumptions",
+          "label": "What assumptions underpin this analysis?",
+          "help": "State them, so a reader can challenge them.",
+          "input": "textarea",
+          "required": false,
+          "placeholder": ""
+        }
+      ]
+    },
+    {
+      "key": "remediation",
+      "title": "Remediation",
+      "order": 8,
+      "kind": "guided",
+      "required": false,
+      "guidance": "",
+      "questions": [
+        {
+          "key": "remediation_priorities",
+          "label": "What should be fixed first?",
+          "help": "Ordered remediation. Reference findings by their identifier.",
+          "input": "textarea",
+          "required": true,
+          "placeholder": ""
+        },
+        {
+          "key": "remediation_effort",
+          "label": "What effort or dependencies are involved?",
+          "help": "Anything that affects sequencing: change windows, vendor involvement, cost.",
+          "input": "textarea",
+          "required": false,
+          "placeholder": ""
+        },
+        {
+          "key": "remediation_verification",
+          "label": "How will fixes be verified?",
+          "help": "Retest plan, acceptance criteria, who confirms.",
+          "input": "textarea",
+          "required": false,
+          "placeholder": ""
+        }
+      ]
+    },
+    {
+      "key": "recommendations",
+      "title": "Recommendations",
+      "order": 9,
+      "kind": "guided",
+      "required": false,
+      "guidance": "",
+      "questions": [
+        {
+          "key": "recommendations_strategic",
+          "label": "What longer-term changes are recommended?",
+          "help": "Improvements beyond fixing individual findings: process, monitoring, architecture, training.",
+          "input": "textarea",
+          "required": false,
+          "placeholder": ""
+        },
+        {
+          "key": "recommendations_quick_wins",
+          "label": "What can be improved immediately?",
+          "help": "Low-effort changes worth making now.",
+          "input": "textarea",
+          "required": false,
+          "placeholder": ""
+        }
+      ]
+    },
+    {
+      "key": "conclusion",
+      "title": "Conclusion",
+      "order": 10,
+      "kind": "guided",
+      "required": false,
+      "guidance": "",
+      "questions": [
+        {
+          "key": "conclusion_summary",
+          "label": "What is the conclusion?",
+          "help": "Close the report. Do not introduce new facts here.",
+          "input": "textarea",
+          "required": true,
+          "placeholder": ""
+        }
+      ]
+    },
+    {
+      "key": "evidence",
+      "title": "Evidence",
+      "order": 11,
+      "kind": "evidence",
+      "required": false,
+      "guidance": "Evidence attached to this report is listed with its reference, original filename and SHA-256 so a reader can verify it independently.",
+      "questions": []
+    },
+    {
+      "key": "appendix",
+      "title": "Appendix",
+      "order": 12,
+      "kind": "guided",
+      "required": false,
+      "guidance": "",
+      "questions": [
+        {
+          "key": "appendix_notes",
+          "label": "Anything else the reader needs?",
+          "help": "Supporting detail, raw output references, glossary, contact information.",
+          "input": "textarea",
+          "required": false,
+          "placeholder": ""
+        }
+      ]
+    }
+  ]
+}

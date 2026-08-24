@@ -1,0 +1,228 @@
+{
+  "key": "custom_report",
+  "name": "Custom Report",
+  "report_type": "custom",
+  "version": 1,
+  "description": "Minimal structure for work that does not fit the other templates. Sections can be turned off individually.",
+  "default_classification": "internal",
+  "sections": [
+    {
+      "key": "executive_summary",
+      "title": "Executive Summary",
+      "order": 1,
+      "kind": "guided",
+      "required": true,
+      "guidance": "Written for a decision maker. Every statement here must be supported by detail elsewhere in the report.",
+      "questions": [
+        {
+          "key": "exec_purpose",
+          "label": "What was assessed, and why?",
+          "help": "One or two sentences a non-technical reader can follow. Name the system or environment and the reason the work was requested.",
+          "input": "textarea",
+          "required": true,
+          "placeholder": "Describe the target and the business reason for the work."
+        },
+        {
+          "key": "exec_outcome",
+          "label": "What is the overall result?",
+          "help": "State the headline outcome in plain language. Do not introduce findings that are not recorded elsewhere in the report.",
+          "input": "textarea",
+          "required": true,
+          "placeholder": ""
+        },
+        {
+          "key": "exec_key_risks",
+          "label": "What are the most important risks to act on?",
+          "help": "Summarise the highest-severity findings. Leave blank if there are none; do not invent risks to fill the section.",
+          "input": "textarea",
+          "required": false,
+          "placeholder": ""
+        },
+        {
+          "key": "exec_next_steps",
+          "label": "What should happen next?",
+          "help": "The one to three actions the reader should take away.",
+          "input": "textarea",
+          "required": false,
+          "placeholder": ""
+        }
+      ]
+    },
+    {
+      "key": "scope",
+      "title": "Scope",
+      "order": 2,
+      "kind": "guided",
+      "required": true,
+      "guidance": "",
+      "questions": [
+        {
+          "key": "scope_in",
+          "label": "What was in scope?",
+          "help": "List systems, networks, applications, accounts or cloud subscriptions that were covered.",
+          "input": "textarea",
+          "required": true,
+          "placeholder": "10.0.0.0/24, app.example.internal, the production AWS account"
+        },
+        {
+          "key": "scope_out",
+          "label": "What was explicitly out of scope?",
+          "help": "Anything deliberately excluded. This protects both parties later.",
+          "input": "textarea",
+          "required": false,
+          "placeholder": ""
+        },
+        {
+          "key": "scope_limitations",
+          "label": "What limited the work?",
+          "help": "Time windows, credentials not provided, systems unavailable, testing restrictions. Say so plainly - unstated limitations become disputed findings.",
+          "input": "textarea",
+          "required": false,
+          "placeholder": ""
+        }
+      ]
+    },
+    {
+      "key": "objectives",
+      "title": "Objectives",
+      "order": 3,
+      "kind": "guided",
+      "required": false,
+      "guidance": "",
+      "questions": [
+        {
+          "key": "objectives_primary",
+          "label": "What were the objectives?",
+          "help": "What the work set out to determine or demonstrate.",
+          "input": "textarea",
+          "required": true,
+          "placeholder": ""
+        },
+        {
+          "key": "objectives_success",
+          "label": "How was success measured?",
+          "help": "The criteria used to judge whether the objectives were met.",
+          "input": "textarea",
+          "required": false,
+          "placeholder": ""
+        }
+      ]
+    },
+    {
+      "key": "background",
+      "title": "Background",
+      "order": 4,
+      "kind": "guided",
+      "required": false,
+      "guidance": "",
+      "questions": [
+        {
+          "key": "custom_background",
+          "label": "What context does the reader need?",
+          "help": "",
+          "input": "textarea",
+          "required": false,
+          "placeholder": ""
+        }
+      ]
+    },
+    {
+      "key": "analysis",
+      "title": "Analysis",
+      "order": 5,
+      "kind": "guided",
+      "required": true,
+      "guidance": "",
+      "questions": [
+        {
+          "key": "custom_analysis",
+          "label": "What is the substance of the report?",
+          "help": "The main body. Use the guided questions in other sections if they fit.",
+          "input": "textarea",
+          "required": true,
+          "placeholder": ""
+        }
+      ]
+    },
+    {
+      "key": "findings",
+      "title": "Findings",
+      "order": 6,
+      "kind": "findings",
+      "required": false,
+      "guidance": "Optional. Turn this section off if the report has no structured findings.",
+      "questions": []
+    },
+    {
+      "key": "recommendations",
+      "title": "Recommendations",
+      "order": 7,
+      "kind": "guided",
+      "required": false,
+      "guidance": "",
+      "questions": [
+        {
+          "key": "recommendations_strategic",
+          "label": "What longer-term changes are recommended?",
+          "help": "Improvements beyond fixing individual findings: process, monitoring, architecture, training.",
+          "input": "textarea",
+          "required": false,
+          "placeholder": ""
+        },
+        {
+          "key": "recommendations_quick_wins",
+          "label": "What can be improved immediately?",
+          "help": "Low-effort changes worth making now.",
+          "input": "textarea",
+          "required": false,
+          "placeholder": ""
+        }
+      ]
+    },
+    {
+      "key": "conclusion",
+      "title": "Conclusion",
+      "order": 8,
+      "kind": "guided",
+      "required": false,
+      "guidance": "",
+      "questions": [
+        {
+          "key": "conclusion_summary",
+          "label": "What is the conclusion?",
+          "help": "Close the report. Do not introduce new facts here.",
+          "input": "textarea",
+          "required": true,
+          "placeholder": ""
+        }
+      ]
+    },
+    {
+      "key": "evidence",
+      "title": "Evidence",
+      "order": 9,
+      "kind": "evidence",
+      "required": false,
+      "guidance": "Evidence attached to this report is listed with its reference, original filename and SHA-256 so a reader can verify it independently.",
+      "questions": []
+    },
+    {
+      "key": "appendix",
+      "title": "Appendix",
+      "order": 10,
+      "kind": "guided",
+      "required": false,
+      "guidance": "",
+      "questions": [
+        {
+          "key": "appendix_notes",
+          "label": "Anything else the reader needs?",
+          "help": "Supporting detail, raw output references, glossary, contact information.",
+          "input": "textarea",
+          "required": false,
+          "placeholder": ""
+        }
+      ]
+    }
+  ]
+}

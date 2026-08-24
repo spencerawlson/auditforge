@@ -1,0 +1,134 @@
+{
+  "key": "executive_summary",
+  "name": "Executive Summary",
+  "report_type": "executive_summary",
+  "version": 1,
+  "description": "Short standalone summary for leadership, drawn from work reported in detail elsewhere.",
+  "default_classification": "internal",
+  "sections": [
+    {
+      "key": "overview",
+      "title": "Overview",
+      "order": 1,
+      "kind": "guided",
+      "required": true,
+      "guidance": "",
+      "questions": [
+        {
+          "key": "es_context",
+          "label": "What was done, and why does it matter?",
+          "help": "Two or three sentences. Assume the reader has five minutes.",
+          "input": "textarea",
+          "required": true,
+          "placeholder": ""
+        },
+        {
+          "key": "es_source",
+          "label": "Which detailed report does this summarise?",
+          "help": "Reference the source report so a reader can go deeper.",
+          "input": "textarea",
+          "required": false,
+          "placeholder": ""
+        }
+      ]
+    },
+    {
+      "key": "key_findings",
+      "title": "Key Findings",
+      "order": 2,
+      "kind": "guided",
+      "required": true,
+      "guidance": "",
+      "questions": [
+        {
+          "key": "es_findings",
+          "label": "What are the most important findings?",
+          "help": "Three to five points. Every point must exist in the detailed report.",
+          "input": "textarea",
+          "required": true,
+          "placeholder": ""
+        }
+      ]
+    },
+    {
+      "key": "business_impact",
+      "title": "Business Impact",
+      "order": 3,
+      "kind": "guided",
+      "required": true,
+      "guidance": "",
+      "questions": [
+        {
+          "key": "es_impact",
+          "label": "What does this mean for the business?",
+          "help": "Consequence in operational and financial terms, not technical detail.",
+          "input": "textarea",
+          "required": true,
+          "placeholder": ""
+        }
+      ]
+    },
+    {
+      "key": "risk_posture",
+      "title": "Risk Posture",
+      "order": 4,
+      "kind": "guided",
+      "required": false,
+      "guidance": "",
+      "questions": [
+        {
+          "key": "es_posture",
+          "label": "What is the overall risk position?",
+          "help": "Where the organisation stands now, and the direction of travel.",
+          "input": "textarea",
+          "required": false,
+          "placeholder": ""
+        }
+      ]
+    },
+    {
+      "key": "recommendations",
+      "title": "Recommendations",
+      "order": 5,
+      "kind": "guided",
+      "required": false,
+      "guidance": "",
+      "questions": [
+        {
+          "key": "recommendations_strategic",
+          "label": "What longer-term changes are recommended?",
+          "help": "Improvements beyond fixing individual findings: process, monitoring, architecture, training.",
+          "input": "textarea",
+          "required": false,
+          "placeholder": ""
+        },
+        {
+          "key": "recommendations_quick_wins",
+          "label": "What can be improved immediately?",
+          "help": "Low-effort changes worth making now.",
+          "input": "textarea",
+          "required": false,
+          "placeholder": ""
+        }
+      ]
+    },
+    {
+      "key": "next_steps",
+      "title": "Next Steps",
+      "order": 6,
+      "kind": "guided",
+      "required": true,
+      "guidance": "",
+      "questions": [
+        {
+          "key": "es_next",
+          "label": "What decisions or approvals are needed?",
+          "help": "Be specific about what is being asked of the reader.",
+          "input": "textarea",
+          "required": true,
+          "placeholder": ""
+        }
+      ]
+    }
+  ]
+}

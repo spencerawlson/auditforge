@@ -1,0 +1,61 @@
+[package]
+name = "auditforge-core"
+description = "Domain core for AuditForge: storage, authentication, reporting, AI orchestration and PDF rendering."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+
+[features]
+default = ["os-keyring"]
+# Store AI provider credentials in the operating system keychain.
+# Disable for headless/CI builds where no keychain daemon is available.
+os-keyring = ["dep:keyring"]
+
+[dependencies]
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+chrono.workspace = true
+uuid.workspace = true
+tracing.workspace = true
+
+rusqlite = { version = "0.32", features = ["bundled", "backup"] }
+argon2 = { version = "0.5", features = ["std"] }
+password-hash = { version = "0.5", features = ["std"] }
+sha2 = "0.10"
+aes-gcm = "0.10"
+zeroize = { version = "1", features = ["derive"] }
+subtle = "2"
+base64 = "0.22"
+flate2 = "1"
+png = "0.17"
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls", "blocking"] }
+keyring = { version = "3", optional = true }
+
+[target.'cfg(target_os = "linux")'.dependencies]
+keyring = { version = "3", features = ["sync-secret-service", "crypto-rust"], optional = true }
+
+[target.'cfg(windows)'.dependencies]
+keyring = { version = "3", features = ["windows-native"], optional = true }
+
+[target.'cfg(target_os = "macos")'.dependencies]
+keyring = { version = "3", features = ["apple-native"], optional = true }
+
+[dev-dependencies]
+tempfile = "3"
+rusqlite = { version = "0.32", features = ["bundled"] }
+serde_json = "1"
+
+# Integration tests live in the repository-level `tests/` directory, alongside the
+# migrations and templates they exercise, rather than inside the crate. Cargo needs the
+# paths spelled out because the directory is outside the package root.
+[[test]]
+name = "workflow"
+path = "../../tests/workflow.rs"
+
+[[test]]
+name = "security"
+path = "../../tests/security.rs"
