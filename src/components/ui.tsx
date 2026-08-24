@@ -56,13 +56,14 @@ interface FieldProps {
 export function Field({ label, children, help, error, required, htmlFor }: FieldProps) {
   return (
     <div className="field">
-      <label className="field__label" htmlFor={htmlFor}>
+      {/* The required marker is drawn by CSS rather than put in the label text, so the
+          accessible name stays "Username" and not "Username*". The input's own `required`
+          attribute is what actually conveys it to assistive technology. */}
+      <label
+        className={`field__label${required ? " field__label--required" : ""}`}
+        htmlFor={htmlFor}
+      >
         {label}
-        {required && (
-          <span className="field__required" aria-hidden="true">
-            *
-          </span>
-        )}
       </label>
       {help && <div className="field__help">{help}</div>}
       {children}

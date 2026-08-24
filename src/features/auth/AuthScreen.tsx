@@ -1,8 +1,9 @@
 /**
- * The first-run and sign-in screen.
+ * The sign-in and account-creation screen.
  *
- * On a machine with no account it shows Create Account; afterwards it shows Login. Both
- * live here because they share the same frame and the same transition into the app.
+ * Both are always available from the toggle at the top; which one starts selected depends
+ * on whether this machine already has an account. They live together because they share
+ * the same frame and the same transition into the application.
  */
 
 import { useEffect, useState, type FormEvent } from "react";
@@ -73,21 +74,41 @@ export function AuthScreen() {
       </aside>
 
       <main className="auth__panel">
+        <div className="auth__form">
+          {/* Both routes are always offered. Which one starts selected depends on whether
+              this machine already has an account, but the choice is never taken away. */}
+          <div className="segmented" role="tablist" aria-label="Sign in or create an account">
+            <button
+              type="button"
+              role="tab"
+              aria-selected={mode === "login"}
+              className={`segmented__option${mode === "login" ? " segmented__option--active" : ""}`}
+              onClick={() => setMode("login")}
+            >
+              Sign in
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={mode === "create"}
+              className={`segmented__option${mode === "create" ? " segmented__option--active" : ""}`}
+              onClick={() => setMode("create")}
+            >
+              Create account
+            </button>
+          </div>
+        </div>
+
         {mode === "create" ? (
           <CreateAccountForm
-            allowCancel={Boolean(status?.has_account)}
-            onCancel={() => setMode("login")}
+            hasExistingAccount={Boolean(status?.has_account)}
             onCreated={async () => {
               await refreshStatus();
               setMode("login");
             }}
           />
         ) : (
-          <LoginForm
-            onSignIn={signIn}
-            onCreateAccount={() => setMode("create")}
-            canCreateAccount={Boolean(status?.has_account)}
-          />
+          <LoginForm onSignIn={signIn} hasAccount={Boolean(status?.has_account)} />
         )}
       </main>
     </div>
@@ -98,12 +119,10 @@ export function AuthScreen() {
 
 function LoginForm({
   onSignIn,
-  onCreateAccount,
-  canCreateAccount,
+  hasAccount,
 }: {
   onSignIn: (username: string, password: string) => Promise<void>;
-  onCreateAccount: () => void;
-  canCreateAccount: boolean;
+  hasAccount: boolean;
 }) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -142,6 +161,13 @@ function LoginForm({
         <p className="auth__subtitle">Your reports and evidence stay on this machine.</p>
       </div>
 
+      {!hasAccount && (
+        <Notice tone="info" title="No account on this machine yet">
+          Choose <span className="strong">Create account</span> above to make one. It becomes
+          the default author on your reports.
+        </Notice>
+      )}
+
       {lockedFor !== null && (
         <Notice tone="danger" title="Account temporarily locked">
           Too many failed attempts. Try again in about {Math.max(1, Math.ceil(lockedFor / 60))}{" "}
@@ -170,14 +196,6 @@ function LoginForm({
       <Button type="submit" variant="primary" size="lg" block busy={busy}>
         Sign in
       </Button>
-
-      {canCreateAccount && (
-        <p className="small muted" style={{ textAlign: "center" }}>
-          <button type="button" className="btn btn--ghost btn--sm" onClick={onCreateAccount}>
-            Create another account
-          </button>
-        </p>
-      )}
     </form>
   );
 }
@@ -196,12 +214,10 @@ const EMPTY_ACCOUNT: NewUser = {
 
 function CreateAccountForm({
   onCreated,
-  onCancel,
-  allowCancel,
+  hasExistingAccount,
 }: {
   onCreated: () => Promise<void>;
-  onCancel: () => void;
-  allowCancel: boolean;
+  hasExistingAccount: boolean;
 }) {
   const [form, setForm] = useState<NewUser>(EMPTY_ACCOUNT);
   const [strength, setStrength] = useState(0);
@@ -251,7 +267,9 @@ function CreateAccountForm({
   return (
     <form className="auth__form stack" onSubmit={submit}>
       <div>
-        <h2 className="auth__title">Create your account</h2>
+        <h2 className="auth__title">
+          {hasExistingAccount ? "Create another account" : "Create your account"}
+        </h2>
         <p className="auth__subtitle">
           This becomes the default author on every report you write. You can change it later;
           reports you have already finalized keep the details they were signed off with.
@@ -316,12 +334,6 @@ function CreateAccountForm({
       <Button type="submit" variant="primary" size="lg" block busy={busy}>
         Create account
       </Button>
-
-      {allowCancel && (
-        <Button type="button" variant="ghost" block onClick={onCancel}>
-          Back to sign in
-        </Button>
-      )}
     </form>
   );
 }

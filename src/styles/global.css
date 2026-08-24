@@ -568,9 +568,11 @@ a:hover {
   color: var(--ink);
 }
 
-.field__required {
-  color: var(--danger);
+/* Drawn rather than written, so the label's accessible name has no stray asterisk. */
+.field__label--required::after {
+  content: "*";
   margin-left: 2px;
+  color: var(--danger);
 }
 
 .field__help {
@@ -1111,6 +1113,37 @@ a:hover {
   margin-bottom: 24px;
   color: var(--muted);
   font-size: var(--text-sm);
+}
+
+.segmented {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px;
+  margin-bottom: 26px;
+  padding: 3px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface-sunken);
+}
+
+.segmented__option {
+  padding: 7px 12px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--muted);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.12s ease, color 0.12s ease;
+}
+.segmented__option:hover {
+  color: var(--ink);
+}
+.segmented__option--active {
+  background: var(--surface);
+  color: var(--accent);
+  box-shadow: var(--shadow-sm);
 }
 
 .meter {

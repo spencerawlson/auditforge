@@ -373,6 +373,34 @@ function AiTab({ value }: { value: AiSettings }) {
               <span className="small muted">{status.data.destination}</span>
             </div>
           )}
+
+          {/* A key on its own does not turn cloud AI on, and a saved-but-inactive provider
+              otherwise looks like the setting failed to save. Say which gate is closed. */}
+          {status.data && !status.data.enabled && value.provider !== "disabled" && (
+            <Notice tone="warning" title="Selected, but not active yet">
+              {value.provider === "openai" && !value.cloud_consent ? (
+                <>
+                  An API key is not enough on its own. Tick{" "}
+                  <span className="strong">
+                    “I consent to sending report text to the configured cloud provider”
+                  </span>{" "}
+                  below and press <span className="strong">Save AI settings</span>. Sending a
+                  client&rsquo;s report text to a third party should be a deliberate act, so
+                  AuditForge asks for it explicitly rather than inferring it from the presence
+                  of a key.
+                </>
+              ) : value.provider === "openai" && !value.has_api_key ? (
+                <>
+                  No API key is stored yet. Add one below and press{" "}
+                  <span className="strong">Save key</span>.
+                </>
+              ) : (
+                <>
+                  Press <span className="strong">Save AI settings</span> to apply your changes.
+                </>
+              )}
+            </Notice>
+          )}
           <div className="grid grid--3">
             {PROVIDERS.map((provider) => (
               <button

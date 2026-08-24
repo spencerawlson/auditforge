@@ -6,7 +6,7 @@ import { NavLink, useNavigate } from "react-router-dom";
 import { useDebouncedValue } from "@/hooks/useAsync";
 import { SESSION_WARNING_SECS, useSession } from "@/features/auth/SessionProvider";
 import { api } from "@/services/api";
-import type { HitKind, SearchHit } from "@/types";
+import type { AppSettings, HitKind, SearchHit } from "@/types";
 
 import { SeverityBadge } from "./badges";
 import { Button } from "./ui";
@@ -103,7 +103,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               Session ends in {Math.max(1, Math.ceil((secondsRemaining ?? 0) / 60))} min
             </span>
           )}
-          <AiIndicator />
+          <AiIndicator settings={settings} />
         </header>
         <div className="content">{children}</div>
       </div>
@@ -111,11 +111,24 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   );
 }
 
-/** Live privacy indicator, so the current AI mode is visible from every screen. */
-function AiIndicator() {
-  const [state, setState] = useState<{ mode: "offline" | "local" | "cloud"; text: string } | null>(
-    null,
-  );
+/**
+ * Live privacy indicator, so the current AI mode is visible from every screen.
+ *
+ * It re-reads whenever AI settings change. Reading once on mount left it showing
+ * "Disabled" after the user had configured a provider, which is the one thing this badge
+ * must never get wrong.
+ */
+function AiIndicator({ settings }: { settings: AppSettings | null }) {
+  const [state, setState] = useState<{
+    mode: "offline" | "local" | "cloud";
+    text: string;
+  } | null>(null);
+
+  // Depends on the fields that can change the answer, so saving settings refreshes it.
+  const provider = settings?.ai.provider;
+  const consent = settings?.ai.cloud_consent;
+  const hasKey = settings?.ai.has_api_key;
+  const endpoint = settings?.ai.local_endpoint;
 
   useEffect(() => {
     let cancelled = false;
@@ -128,17 +141,35 @@ function AiIndicator() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [provider, consent, hasKey, endpoint]);
 
   if (!state) return null;
+
+  // Selected but not active: say so, rather than reporting a bare "Disabled" that looks
+  // like the setting did not save.
+  const blocked =
+    state.mode === "offline" && provider === "openai"
+      ? !consent
+        ? "Cloud AI is selected but consent has not been given. Settings > AI."
+        : !hasKey
+          ? "Cloud AI is selected but no API key is stored. Settings > AI."
+          : null
+      : null;
+
   const label =
     state.mode === "cloud"
       ? "AI: OpenAI Cloud"
       : state.mode === "local"
         ? "AI: Local / Private"
-        : "AI: Disabled";
+        : blocked
+          ? "AI: Not enabled"
+          : "AI: Disabled";
+
   return (
-    <span className={`privacy privacy--${state.mode}`} title={state.text}>
+    <span
+      className={`privacy privacy--${blocked ? "cloud" : state.mode}`}
+      title={blocked ?? state.text}
+    >
       <span className="privacy__dot" aria-hidden="true" />
       {label}
     </span>

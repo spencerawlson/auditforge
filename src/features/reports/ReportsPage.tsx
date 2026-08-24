@@ -235,9 +235,7 @@ function CreateReportDialog({
         />
 
         <div className="field">
-          <span className="field__label">
-            Report type<span className="field__required">*</span>
-          </span>
+          <span className="field__label field__label--required">Report type</span>
           <div className="field__help">
             The type decides which sections exist and which questions you are asked.
           </div>

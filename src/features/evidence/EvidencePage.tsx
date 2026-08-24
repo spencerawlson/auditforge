@@ -230,9 +230,7 @@ function ImportDialog({ onClose, onImported }: { onClose: () => void; onImported
         {importState.error && <Notice tone="danger">{importState.error.message}</Notice>}
 
         <div className="field">
-          <span className="field__label">
-            File<span className="field__required">*</span>
-          </span>
+          <span className="field__label field__label--required">File</span>
           <div className="row">
             <input className="input" value={sourcePath} readOnly placeholder="No file chosen" />
             <Button busy={pickState.busy} onClick={() => void pick()}>
