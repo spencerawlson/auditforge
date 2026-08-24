@@ -1,0 +1,17 @@
+# Normalize to LF in the repository. Shell scripts and the AppImage/deb tooling need it,
+# and the migration checksum treats CRLF and LF as equivalent so a Windows checkout of the
+# SQL still verifies.
+* text=auto eol=lf
+
+*.sh   text eol=lf
+*.rs   text eol=lf
+*.ts   text eol=lf
+*.tsx  text eol=lf
+*.json text eol=lf
+*.sql  text eol=lf
+*.md   text eol=lf
+
+# Binary assets.
+*.png binary
+*.ico binary
+*.pdf binary
