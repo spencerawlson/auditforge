@@ -28,6 +28,11 @@ pub const MIGRATIONS: &[Migration] = &[
         name: "seed_tags",
         sql: include_str!("../../../../migrations/0002_seed_tags.sql"),
     },
+    Migration {
+        version: 3,
+        name: "evidence_source_digest",
+        sql: include_str!("../../../../migrations/0003_evidence_source_digest.sql"),
+    },
 ];
 
 pub fn apply(tx: &Transaction<'_>) -> Result<()> {

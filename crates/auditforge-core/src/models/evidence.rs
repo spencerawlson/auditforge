@@ -27,6 +27,14 @@ pub struct Evidence {
     pub byte_size: i64,
     /// SHA-256 of the stored bytes, so a reader can prove the file is unmodified.
     pub sha256: String,
+    /// SHA-256 of the file exactly as supplied, when it differed from the stored bytes.
+    /// Set only when metadata was stripped on import; `None` for anything imported
+    /// before scrubbing existed, which is why it is not simply a copy of `sha256`.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub source_sha256: Option<String>,
+    /// Whether image metadata (EXIF, XMP, IPTC, PNG text chunks) was removed on import.
+    #[serde(default)]
+    pub metadata_stripped: bool,
     pub is_encrypted: bool,
     pub captured_at: Option<Timestamp>,
     pub created_by: String,

@@ -15,6 +15,7 @@
 //! an explicit call, and image rendering in reports is limited to formats the renderer
 //! decodes itself.
 
+pub mod scrub;
 pub mod validation;
 
 use std::path::{Path, PathBuf};
@@ -83,9 +84,17 @@ pub fn import(
         ));
     }
 
-    let mut hasher = Sha256::new();
-    hasher.update(&bytes);
-    let sha256 = format!("{:x}", hasher.finalize());
+    // Strip image metadata BEFORE hashing. `sha256` is the digest of what lands in the
+    // vault, and `verify` re-hashes the stored copy against it, so scrubbing afterwards
+    // would break verification for every image. The digest of the file as supplied is
+    // kept as `source_sha256` so the chain of custody survives the removal.
+    let source_sha256 = digest(&bytes);
+    let scrubbed = scrub::scrub_image(&bytes);
+    let metadata_stripped = scrubbed.changed;
+    let removed_metadata = scrubbed.removed.clone();
+    let bytes = scrubbed.bytes;
+
+    let sha256 = digest(&bytes);
     let stored_filename = paths::sanitize_filename(&original_filename);
     let year = Timestamp::now().inner().format("%Y").to_string();
 
@@ -109,8 +118,9 @@ pub fn import(
             "INSERT INTO evidence (id, evidence_ref, engagement_id, title, description,
                                    original_filename, stored_filename, relative_path, mime_type,
                                    kind, byte_size, sha256, is_encrypted, captured_at, created_by,
-                                   created_at, updated_at)
-             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?16)",
+                                   created_at, updated_at, source_sha256, metadata_stripped)
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?16,
+                     ?17, ?18)",
             rusqlite::params![
                 id,
                 evidence_ref,
@@ -128,6 +138,10 @@ pub fn import(
                 input.captured_at,
                 actor.user_id,
                 now,
+                // Only meaningful when it differs from `sha256`; NULL keeps "nothing was
+                // removed" distinguishable from "removed, and identical by coincidence".
+                metadata_stripped.then(|| source_sha256.clone()),
+                i64::from(metadata_stripped),
             ],
         )?;
 
@@ -150,6 +164,9 @@ pub fn import(
                 "encrypted": input.encrypt,
                 "executable_acknowledged": input.acknowledge_executable && detected.risky,
                 "extension_mismatch": detected.extension_mismatch,
+                "metadata_stripped": metadata_stripped,
+                "metadata_removed": removed_metadata,
+                "source_sha256": metadata_stripped.then(|| source_sha256.clone()),
             }),
         )?;
         Ok(id)
@@ -169,7 +186,8 @@ pub fn get(conn: &Connection, id: &str) -> Result<Evidence> {
 
 const SELECT_EVIDENCE: &str = "SELECT id, evidence_ref, engagement_id, title, description,
         original_filename, stored_filename, relative_path, mime_type, kind, byte_size, sha256,
-        is_encrypted, captured_at, created_by, created_at, updated_at
+        is_encrypted, captured_at, created_by, created_at, updated_at, source_sha256,
+        metadata_stripped
     FROM evidence WHERE id = ?1";
 
 fn row_to_evidence(row: &rusqlite::Row<'_>) -> rusqlite::Result<Evidence> {
@@ -191,8 +209,17 @@ fn row_to_evidence(row: &rusqlite::Row<'_>) -> rusqlite::Result<Evidence> {
         created_by: row.get(14)?,
         created_at: row.get(15)?,
         updated_at: row.get(16)?,
+        source_sha256: row.get(17)?,
+        metadata_stripped: row.get::<_, i64>(18)? != 0,
         links: Vec::new(),
     })
+}
+
+/// SHA-256 of a byte slice, lowercase hex.
+fn digest(bytes: &[u8]) -> String {
+    let mut hasher = Sha256::new();
+    hasher.update(bytes);
+    format!("{:x}", hasher.finalize())
 }
 
 fn load_links(conn: &Connection, evidence_id: &str) -> Result<Vec<EvidenceLink>> {
@@ -218,7 +245,7 @@ pub fn list(conn: &Connection, filter: &EvidenceFilter) -> Result<Vec<Evidence>>
         "SELECT e.id, e.evidence_ref, e.engagement_id, e.title, e.description,
                 e.original_filename, e.stored_filename, e.relative_path, e.mime_type, e.kind,
                 e.byte_size, e.sha256, e.is_encrypted, e.captured_at, e.created_by, e.created_at,
-                e.updated_at
+                e.updated_at, e.source_sha256, e.metadata_stripped
          FROM evidence e WHERE 1 = 1",
     );
     let mut params: Vec<Box<dyn rusqlite::ToSql>> = Vec::new();
@@ -833,4 +860,93 @@ mod tests {
         assert_eq!(entries.len(), 1);
         assert_eq!(entries[0].detail["sha256"], evidence.sha256);
     }
+
+    /// A PNG carrying GPS coordinates and an email address must reach the vault without
+    /// them — and the digest a reader verifies must be of what is actually stored.
+    #[test]
+    fn importing_an_image_strips_its_metadata_and_records_both_digests() {
+        fn chunk(kind: &[u8; 4], data: &[u8]) -> Vec<u8> {
+            let mut c = Vec::new();
+            c.extend_from_slice(&(data.len() as u32).to_be_bytes());
+            c.extend_from_slice(kind);
+            c.extend_from_slice(data);
+            c.extend_from_slice(&[0, 0, 0, 0]);
+            c
+        }
+        let mut dirty = Vec::from(b"\x89PNG\r\n\x1a\n".as_slice());
+        dirty.extend(chunk(b"IHDR", &[0, 0, 0, 1, 0, 0, 0, 1, 8, 6, 0, 0, 0]));
+        dirty.extend(chunk(b"eXIf", b"GPS 45.5017 -73.5673"));
+        dirty.extend(chunk(b"tEXt", b"Author\0spencer@example.com"));
+        dirty.extend(chunk(b"IDAT", &[1, 2, 3]));
+        dirty.extend(chunk(b"IEND", &[]));
+
+        let fixture = Fixture::new();
+        let evidence = fixture.import_named("capture.png", &dirty).unwrap();
+
+        assert!(evidence.metadata_stripped, "the scrub should have fired");
+        let source = evidence
+            .source_sha256
+            .as_ref()
+            .expect("the pre-scrub digest must be kept for chain of custody");
+        assert_ne!(source, &evidence.sha256, "the two digests cannot be equal here");
+
+        // What is on disk must be the clean bytes, and must match the recorded digest —
+        // this is the property `verify` depends on.
+        let stored = std::fs::read(fixture.root().join(&evidence.relative_path)).unwrap();
+        assert!(!stored.windows(7).any(|w| w == b"45.5017"));
+        assert!(!stored.windows(19).any(|w| w == b"spencer@example.com"));
+        assert!(stored.windows(4).any(|w| w == b"IDAT"), "pixels must survive");
+
+        let mut hasher = Sha256::new();
+        hasher.update(&stored);
+        assert_eq!(format!("{:x}", hasher.finalize()), evidence.sha256);
+        assert_eq!(evidence.byte_size as usize, stored.len());
+    }
+
+    /// A file with nothing to strip must be recorded as untouched, so `metadata_stripped`
+    /// means something when it is true.
+    #[test]
+    fn importing_a_file_with_no_metadata_records_no_stripping() {
+        let fixture = Fixture::new();
+        let evidence = fixture
+            .import_named("scan.txt", b"nmap -sV 10.10.10.3\n22/tcp open ssh")
+            .unwrap();
+        assert!(!evidence.metadata_stripped);
+        assert!(
+            evidence.source_sha256.is_none(),
+            "no second digest when nothing was removed"
+        );
+    }
+
+    /// Stripping must not break the integrity check the report appendix relies on.
+    #[test]
+    fn a_scrubbed_image_still_passes_verification() {
+        fn chunk(kind: &[u8; 4], data: &[u8]) -> Vec<u8> {
+            let mut c = Vec::new();
+            c.extend_from_slice(&(data.len() as u32).to_be_bytes());
+            c.extend_from_slice(kind);
+            c.extend_from_slice(data);
+            c.extend_from_slice(&[0, 0, 0, 0]);
+            c
+        }
+        let mut dirty = Vec::from(b"\x89PNG\r\n\x1a\n".as_slice());
+        dirty.extend(chunk(b"IHDR", &[0, 0, 0, 1, 0, 0, 0, 1, 8, 6, 0, 0, 0]));
+        dirty.extend(chunk(b"tEXt", b"Software\0CaptureTool"));
+        dirty.extend(chunk(b"IDAT", &[9, 9, 9]));
+        dirty.extend(chunk(b"IEND", &[]));
+
+        let fixture = Fixture::new();
+        let evidence = fixture.import_named("shot.png", &dirty).unwrap();
+        assert!(evidence.metadata_stripped);
+
+        // read_bytes re-hashes the stored copy and fails if it does not match the
+        // recorded digest, which is exactly the property scrubbing could have broken.
+        let bytes = fixture
+            .db
+            .with_conn(|conn| read_bytes(conn, fixture.root(), None, &evidence.id))
+            .expect("a scrubbed image must still verify against its recorded digest");
+        assert!(bytes.windows(4).any(|w| w == b"IDAT"));
+        assert!(!bytes.windows(12).any(|w| w == b"CaptureTool"));
+    }
+
 }
