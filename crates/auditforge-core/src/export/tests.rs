@@ -245,3 +245,65 @@ fn every_format_has_an_extension_and_a_label() {
         assert_eq!(back, format);
     }
 }
+/// A table answer has to survive the whole path: stored as JSON on the answer, rendered
+/// as a real table in HTML and Markdown, and never leaked to the reader as raw JSON.
+#[test]
+fn table_answers_render_as_tables_in_html_and_markdown() {
+    let (mut content, template) = sample();
+    let section = content.section_mut("environment").unwrap();
+    let answer = section
+        .answers
+        .iter_mut()
+        .find(|a| a.question_key == "env_services")
+        .expect("the environment section should carry the services table");
+    answer.value = r#"[{"host":"10.10.10.3","port":"22","protocol":"tcp","service":"ssh","version":"OpenSSH 9.6p1","state":"open"},{"host":"10.10.10.3","port":"445","protocol":"tcp","service":"smb","version":"Samba 4","state":"open"}]"#.to_string();
+
+    let html = to_html(&content, Some(&template));
+    assert!(html.contains("<th>Service</th>"), "column headers missing");
+    assert!(html.contains("<td>OpenSSH 9.6p1</td>"), "cell value missing");
+    assert!(
+        !html.contains(r#"{"host""#),
+        "raw JSON leaked into the HTML export"
+    );
+
+    let markdown = to_markdown(&content, Some(&template));
+    assert!(markdown.contains("| Host | Port | Proto | Service | Version | State |"));
+    assert!(markdown.contains("| 10.10.10.3 | 445 | tcp | smb | Samba 4 | open |"));
+    assert!(
+        !markdown.contains(r#"{"host""#),
+        "raw JSON leaked into the Markdown export"
+    );
+}
+
+/// A pipe inside a cell would otherwise split the row into columns the template never
+/// declared, silently corrupting every row after it.
+#[test]
+fn a_pipe_in_a_cell_cannot_break_the_markdown_table() {
+    let (mut content, template) = sample();
+    let section = content.section_mut("environment").unwrap();
+    let answer = section
+        .answers
+        .iter_mut()
+        .find(|a| a.question_key == "env_assets")
+        .unwrap();
+    answer.value = r#"[{"identifier":"web01","notes":"prod | dmz"}]"#.to_string();
+
+    let markdown = to_markdown(&content, Some(&template));
+    let row = markdown
+        .lines()
+        .find(|line| line.contains("web01"))
+        .expect("row rendered");
+    assert!(row.contains(r"prod \| dmz"), "pipe not escaped: {row}");
+    // header + separator + one data row, all with the same column count
+    assert_eq!(row.matches('|').count() - row.matches(r"\|").count(), 6);
+}
+
+/// An empty table must not print an empty shell with headers and no rows.
+#[test]
+fn an_empty_table_renders_nothing_at_all() {
+    let (content, template) = sample();
+    let html = to_html(&content, Some(&template));
+    assert!(!html.contains("<th>Service</th>"));
+    let markdown = to_markdown(&content, Some(&template));
+    assert!(!markdown.contains("| Host | Port |"));
+}

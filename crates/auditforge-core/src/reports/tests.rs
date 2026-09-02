@@ -298,6 +298,40 @@ fn readiness_reports_blockers_and_warnings_separately() {
 }
 
 #[test]
+fn readiness_carries_a_completeness_picture() {
+    use crate::reports::standards::CompletenessStatus;
+    let (db, actor) = seeded();
+    let report = create(&db, &actor, &new_report("executive_summary")).unwrap();
+
+    // Nothing answered yet: required sections are missing and the report reads Incomplete.
+    let readiness = db
+        .with_conn(|conn| super::readiness(conn, &report.id))
+        .unwrap();
+    let before = &readiness.completeness;
+    assert_eq!(before.status, CompletenessStatus::Incomplete);
+    assert_eq!(before.min_pages, 2, "executive summaries target two pages");
+    assert_eq!(before.standard_label, "Executive summary");
+    assert!(before.percent < 100);
+    assert!(!before.missing_sections.is_empty());
+
+    // Answer the required questions: every required section now has content, so the status
+    // is no longer Incomplete. A short document is flagged for review, never rejected.
+    fill_required(&db, &actor, &report.id);
+    let readiness = db
+        .with_conn(|conn| super::readiness(conn, &report.id))
+        .unwrap();
+    let after = &readiness.completeness;
+    assert!(
+        after.missing_sections.is_empty(),
+        "required sections should be satisfied: {after:?}"
+    );
+    assert_ne!(after.status, CompletenessStatus::Incomplete);
+    assert_eq!(after.percent, 100);
+    // Completeness is advisory - it must not gate finalization on its own.
+    assert!(readiness.can_finalize);
+}
+
+#[test]
 fn an_unconfirmed_ai_inference_blocks_finalization() {
     let (db, actor) = seeded();
     let report = create(&db, &actor, &new_report("executive_summary")).unwrap();

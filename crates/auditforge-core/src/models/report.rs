@@ -246,6 +246,10 @@ pub enum IssueSeverity {
 pub struct ReportReadiness {
     pub can_finalize: bool,
     pub issues: Vec<ValidationIssue>,
+    /// How complete the report is against the professional standard for its kind: which
+    /// required sections are filled in, the completeness percentage, and whether it meets
+    /// the minimum length. Advisory only - it never affects `can_finalize`.
+    pub completeness: crate::reports::standards::Completeness,
 }
 
 #[cfg(test)]

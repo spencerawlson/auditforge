@@ -20,7 +20,7 @@ use crate::models::{
     Classification, EvidenceSnapshot, Provenance, ReportContent, SectionContent, Timestamp,
 };
 use crate::settings::{PageSize, PdfSettings};
-use crate::templates::{ReportTemplate, SectionKind};
+use crate::templates::{tables, ReportTemplate, SectionKind};
 
 use layout::{Block, CalloutTone, Flow, Geometry, RunningFurniture, Theme, TypeScale};
 use writer::{Content, Document, Font, Image};
@@ -101,6 +101,36 @@ pub fn render(
     flow.finish(&mut document, &furniture, total_pages);
 
     document.finish()
+}
+
+/// Estimate the page count of a report without rendering it to bytes.
+///
+/// Reuses the real layout engine over the same blocks `render` produces, so the count
+/// matches an actual render's pagination. It is a **text-only lower bound**: embedded
+/// evidence images add height but are ignored here, so a report that already meets a page
+/// target on text alone is guaranteed to meet it once rendered. That is the safe direction
+/// for a *minimum* threshold - the completeness check never over-states length.
+pub fn estimate_pages(
+    content: &ReportContent,
+    template: Option<&ReportTemplate>,
+    options: &RenderOptions,
+) -> usize {
+    let geometry = Geometry::new(options.settings.page_size.dimensions());
+    let images = BTreeMap::new();
+    let blocks = build_blocks(content, template, options, &images);
+
+    let mut probe = Flow::new(geometry, 1);
+    probe.write(&blocks);
+    let toc_pages = if options.settings.include_table_of_contents && !probe.toc_entries().is_empty()
+    {
+        probe.toc_entries().len().div_ceil(TOC_ROWS_PER_PAGE)
+    } else {
+        0
+    };
+
+    let mut flow = Flow::new(geometry, 1 + toc_pages);
+    flow.write(&blocks);
+    1 + toc_pages + flow.page_count()
 }
 
 // ------------------------------------------------------------------ cover
@@ -422,8 +452,9 @@ fn guided_section(
     options: &RenderOptions,
 ) {
     for answer in &section.answers {
-        let label = template
-            .and_then(|template| template.question(&section.key, &answer.question_key))
+        let question =
+            template.and_then(|template| template.question(&section.key, &answer.question_key));
+        let label = question
             .map(|question| question.label.clone())
             .unwrap_or_else(|| humanize(&answer.question_key));
 
@@ -437,6 +468,26 @@ fn guided_section(
                 tone: CalloutTone::Gap,
                 text: format!("{INFORMATION_REQUIRED} {}", answer.value.trim()),
             });
+            continue;
+        }
+
+        // A table answer becomes a real table. If the rows fail to parse the block is
+        // skipped rather than printed as raw JSON, which is what a reader would otherwise
+        // find in a finalized document.
+        if let Some(question) = question.filter(|q| q.is_table()) {
+            let table = tables::parse(&answer.value);
+            if !table.is_empty() && !question.columns.is_empty() {
+                blocks.push(Block::Table {
+                    headers: question
+                        .columns
+                        .iter()
+                        .map(|column| column.label.clone())
+                        .collect(),
+                    rows: table.as_grid(&question.columns),
+                    widths: tables::widths(&question.columns),
+                    severity_column: None,
+                });
+            }
             continue;
         }
 

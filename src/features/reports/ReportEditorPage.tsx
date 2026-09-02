@@ -12,6 +12,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 
 import { ClassificationBadge, ProvenanceBadge, ReportStatusBadge } from "@/components/badges";
+import { TableAnswer } from "@/components/TableAnswer";
 import { useToast } from "@/components/Toast";
 import { Button, Card, LoadingBlock, Notice, PageHeader } from "@/components/ui";
 import { AiAssist } from "@/features/ai/AiAssist";
@@ -400,7 +401,22 @@ function SectionEditor({
               </div>
               {question.help && <p className="question__help">{question.help}</p>}
 
-              {question.input === "date" ? (
+              {question.input === "table" ? (
+                <TableAnswer
+                  columns={question.columns ?? []}
+                  value={answer.value}
+                    disabled={!editable}
+                  rowLabel={question.row_label}
+                  label={question.label}
+                  onChange={(value) =>
+                    setAnswer(section.key, question.key, {
+                      value,
+                      provenance: "user_provided",
+                      aiRequestId: null,
+                    })
+                  }
+                />
+              ) : question.input === "date" ? (
                 <input
                   className="input"
                   type="date"
@@ -449,21 +465,23 @@ function SectionEditor({
               )}
 
               <div className="question__toolbar">
-                <AiAssist
-                  text={answer.value}
-                  context={`${reportRef} — ${section.title} — ${question.label}`}
-                  targetType="report"
-                  targetId={reportId}
+                {question.input !== "table" && (
+                  <AiAssist
+                    text={answer.value}
+                    context={`${reportRef} — ${section.title} — ${question.label}`}
+                    targetType="report"
+                    targetId={reportId}
                   disabled={!editable}
-                  onApply={(value, provenance, requestId) =>
-                    setAnswer(section.key, question.key, {
-                      value,
-                      provenance,
-                      aiRequestId: requestId,
-                    })
-                  }
-                />
-                {editable && answer.value.trim().length > 0 && (
+                    onApply={(value, provenance, requestId) =>
+                      setAnswer(section.key, question.key, {
+                        value,
+                        provenance,
+                        aiRequestId: requestId,
+                      })
+                    }
+                  />
+                )}
+                {question.input !== "table" && editable && answer.value.trim().length > 0 && (
                   <Button
                     size="sm"
                     variant="ghost"
@@ -487,7 +505,9 @@ function SectionEditor({
                     Confirm as mine
                   </Button>
                 )}
-                <span className="tiny faint">{answer.value.length} characters</span>
+                {question.input !== "table" && (
+                  <span className="tiny faint">{answer.value.length} characters</span>
+                )}
               </div>
             </div>
           );

@@ -680,3 +680,57 @@ fn tiny_png() -> Vec<u8> {
     }
     out
 }
+
+/// A table answer has to reach the PDF as a real table. This renderer matters most for
+/// the invariant: a finalized PDF is immutable, so raw JSON printed here could not be
+/// corrected without issuing a whole revision.
+#[test]
+fn a_table_answer_renders_as_a_table_and_never_as_raw_json() {
+    let (mut content, template) = sample_content();
+    let section = content
+        .section_mut("environment")
+        .expect("penetration_test has an environment section");
+    let answer = section
+        .answers
+        .iter_mut()
+        .find(|a| a.question_key == "env_services")
+        .expect("environment carries the services table");
+    answer.value = r#"[{"host":"10.10.10.3","port":"22","protocol":"tcp","service":"ssh","version":"OpenSSH 9.6p1","state":"open"}]"#.to_string();
+
+    let pdf = render(
+        &content,
+        Some(&template),
+        &RenderOptions::default(),
+        &no_evidence,
+    )
+    .unwrap();
+
+    assert!(pdf.starts_with(b"%PDF-1.7"));
+    let text = String::from_utf8_lossy(&pdf);
+    assert!(
+        !text.contains(r#"{"host""#),
+        "raw JSON reached the PDF content stream"
+    );
+}
+
+/// A malformed stored value must not be able to fail the render of a finalized report.
+#[test]
+fn a_malformed_table_value_is_skipped_rather_than_failing_the_render() {
+    let (mut content, template) = sample_content();
+    let section = content.section_mut("environment").unwrap();
+    let answer = section
+        .answers
+        .iter_mut()
+        .find(|a| a.question_key == "env_assets")
+        .unwrap();
+    answer.value = "this was never valid JSON".to_string();
+
+    let pdf = render(
+        &content,
+        Some(&template),
+        &RenderOptions::default(),
+        &no_evidence,
+    )
+    .expect("render must still succeed");
+    assert!(pdf.starts_with(b"%PDF-1.7"));
+}

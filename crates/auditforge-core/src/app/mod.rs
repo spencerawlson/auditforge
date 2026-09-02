@@ -386,6 +386,83 @@ impl App {
         Ok(path)
     }
 
+    // ------------------------------------------------------------- postmortems
+
+    /// The completeness picture for a standalone postmortem: which required sections are
+    /// filled in and whether it meets the postmortem length standard. Advisory only.
+    pub fn postmortem_completeness(
+        &self,
+        postmortem_id: &str,
+    ) -> Result<crate::reports::standards::Completeness> {
+        let postmortem = self
+            .db
+            .with_conn(|conn| postmortems::get(conn, postmortem_id))?;
+        Ok(postmortems::document::completeness(&postmortem))
+    }
+
+    /// Export a postmortem as a professional document. A postmortem is not a templated
+    /// report, so it is adapted into the report body the exporters already know how to
+    /// render (see [`postmortems::document`]); the result is identical in quality to a
+    /// report PDF - cover, numbered sections, running furniture and all.
+    pub fn export_postmortem(
+        &self,
+        actor: &Actor,
+        postmortem_id: &str,
+        format: ExportFormat,
+    ) -> Result<ExportedFile> {
+        let postmortem = self
+            .db
+            .with_conn(|conn| postmortems::get(conn, postmortem_id))?;
+        let author = self
+            .db
+            .with_conn(|conn| crate::auth::load_user(conn, &actor.user_id))?
+            .author_snapshot();
+        let content = postmortems::document::to_content(&postmortem, author);
+        let template = postmortems::document::template();
+
+        let bytes = match format {
+            ExportFormat::Pdf => {
+                let user_settings = self.settings(&actor.user_id)?;
+                let options = RenderOptions {
+                    settings: user_settings.reports.pdf.clone(),
+                    footer_note: user_settings.reports.pdf.footer_note.clone(),
+                };
+                // Postmortems carry no evidence attachments of their own.
+                let no_evidence = |_: &EvidenceSnapshot| -> Option<Vec<u8>> { None };
+                pdf::render(&content, Some(&template), &options, &no_evidence)?
+            }
+            ExportFormat::Html => export::to_html(&content, Some(&template)).into_bytes(),
+            ExportFormat::Json => export::to_json(&content)?.into_bytes(),
+            ExportFormat::Markdown => export::to_markdown(&content, Some(&template)).into_bytes(),
+            ExportFormat::Csv => {
+                return Err(crate::error::Error::validation(
+                    "a postmortem has no findings to export as CSV",
+                ))
+            }
+        };
+
+        self.db.with_tx(|tx| {
+            crate::audit::success(
+                tx,
+                actor,
+                crate::models::AuditAction::ReportExported,
+                "postmortem",
+                postmortem_id,
+                serde_json::json!({
+                    "format": format.extension(),
+                    "ref": postmortem.postmortem_ref,
+                    "bytes": bytes.len(),
+                }),
+            )
+        })?;
+
+        Ok(ExportedFile {
+            filename: export::suggested_filename(&content, format),
+            bytes,
+            format,
+        })
+    }
+
     // -------------------------------------------------------------- dashboard
 
     pub fn dashboard(&self, actor: &Actor) -> Result<Dashboard> {

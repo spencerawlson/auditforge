@@ -79,6 +79,37 @@
           "input": "textarea",
           "required": false,
           "placeholder": ""
+        },
+        {
+          "key": "scope_segments",
+          "label": "Network segments",
+          "help": "The segments covered, and what could reach what. Segmentation is usually the control that limits blast radius, so record it explicitly.",
+          "input": "table",
+          "required": false,
+          "placeholder": "",
+          "row_label": "Add segment",
+          "columns": [
+            {
+              "key": "segment",
+              "label": "Segment",
+              "width": 22
+            },
+            {
+              "key": "range",
+              "label": "Range / VLAN",
+              "width": 20
+            },
+            {
+              "key": "purpose",
+              "label": "Purpose",
+              "width": 30
+            },
+            {
+              "key": "reachable",
+              "label": "Reachable from",
+              "width": 28
+            }
+          ]
         }
       ]
     },
@@ -139,6 +170,32 @@
           "input": "textarea",
           "required": false,
           "placeholder": ""
+        },
+        {
+          "key": "method_tooling",
+          "label": "Tooling used",
+          "help": "The tools the work actually relied on, with versions. A finding is only reproducible if the reader knows what produced it.",
+          "input": "table",
+          "required": false,
+          "placeholder": "",
+          "row_label": "Add tool",
+          "columns": [
+            {
+              "key": "tool",
+              "label": "Tool",
+              "width": 28
+            },
+            {
+              "key": "version",
+              "label": "Version",
+              "width": 16
+            },
+            {
+              "key": "purpose",
+              "label": "Used for",
+              "width": 56
+            }
+          ]
         }
       ]
     },
@@ -165,6 +222,83 @@
           "input": "textarea",
           "required": false,
           "placeholder": ""
+        },
+        {
+          "key": "env_assets",
+          "label": "Assets in scope",
+          "help": "One row per host, device or service that was actually tested. This table is what a reader checks when they ask whether a particular system was covered.",
+          "input": "table",
+          "required": false,
+          "placeholder": "",
+          "row_label": "Add asset",
+          "columns": [
+            {
+              "key": "identifier",
+              "label": "Hostname / identifier",
+              "width": 22
+            },
+            {
+              "key": "address",
+              "label": "Address",
+              "width": 16
+            },
+            {
+              "key": "platform",
+              "label": "OS / platform",
+              "width": 20
+            },
+            {
+              "key": "role",
+              "label": "Role",
+              "width": 20
+            },
+            {
+              "key": "notes",
+              "label": "Notes",
+              "width": 22
+            }
+          ]
+        },
+        {
+          "key": "env_services",
+          "label": "Exposed ports and services",
+          "help": "One row per listening service observed. Record the version you actually fingerprinted, not the version you assume is installed.",
+          "input": "table",
+          "required": false,
+          "placeholder": "",
+          "row_label": "Add service",
+          "columns": [
+            {
+              "key": "host",
+              "label": "Host",
+              "width": 20
+            },
+            {
+              "key": "port",
+              "label": "Port",
+              "width": 10
+            },
+            {
+              "key": "protocol",
+              "label": "Proto",
+              "width": 10
+            },
+            {
+              "key": "service",
+              "label": "Service",
+              "width": 18
+            },
+            {
+              "key": "version",
+              "label": "Version",
+              "width": 24
+            },
+            {
+              "key": "state",
+              "label": "State",
+              "width": 18
+            }
+          ]
         }
       ]
     },

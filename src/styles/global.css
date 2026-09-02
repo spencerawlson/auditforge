@@ -700,6 +700,52 @@ a:hover {
   color: var(--muted);
 }
 
+/* Completeness indicator (report readiness) */
+.completeness {
+  display: grid;
+  gap: 8px;
+  padding: 10px 12px;
+  border: 1px solid var(--line-strong);
+  border-radius: 8px;
+  background: var(--surface);
+}
+.completeness__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.completeness__pct {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+.completeness__meter {
+  height: 6px;
+  border-radius: 999px;
+  background: var(--line);
+  overflow: hidden;
+}
+.completeness__bar {
+  height: 100%;
+  border-radius: 999px;
+  background: var(--accent);
+  transition: width 200ms ease;
+}
+.completeness__bar--complete {
+  background: var(--success);
+}
+.completeness__bar--requires_review {
+  background: var(--warning);
+}
+.completeness__bar--incomplete {
+  background: var(--danger);
+}
+.completeness__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+}
+
 .chip {
   display: inline-flex;
   align-items: center;
@@ -1509,4 +1555,125 @@ a:hover {
   clip: rect(0, 0, 0, 0);
   white-space: nowrap;
   border: 0;
+}
+
+/* ------------------------------------------------------------------ tables
+   The editor for a table question (assets, ports, tooling). The grid scrolls inside its
+   own container so a wide table never widens the page, and the cells are borderless
+   inputs so the thing reads as a table rather than as a stack of form fields. */
+.tableAnswer {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  overflow: hidden;
+}
+
+.tableAnswer__scroll {
+  overflow-x: auto;
+}
+
+.tableAnswer__grid {
+  width: 100%;
+  min-width: 560px;
+  border-collapse: collapse;
+  font-size: 0.86rem;
+}
+
+.tableAnswer__grid th {
+  text-align: left;
+  font-weight: 600;
+  font-size: 0.74rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+  background: var(--surface-sunken);
+  border-bottom: 1px solid var(--line);
+  padding: 0.4rem 0.55rem;
+  white-space: nowrap;
+}
+
+.tableAnswer__grid td {
+  border-bottom: 1px solid var(--line);
+  padding: 0;
+  vertical-align: middle;
+}
+
+.tableAnswer__grid tr:last-child td {
+  border-bottom: 0;
+}
+
+.tableAnswer__num {
+  width: 2.2rem;
+  text-align: right;
+  padding: 0.4rem 0.5rem !important;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  font-size: 0.76rem;
+  background: var(--surface-sunken);
+}
+
+.tableAnswer__cell {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  padding: 0.45rem 0.55rem;
+  outline-offset: -2px;
+}
+
+.tableAnswer__cell:focus {
+  outline: 2px solid var(--accent);
+  background: var(--accent-soft);
+}
+
+.tableAnswer__cell:disabled {
+  color: var(--muted);
+}
+
+.tableAnswer__actions {
+  width: 5.5rem;
+  white-space: nowrap;
+  padding: 0 0.35rem !important;
+  text-align: right;
+}
+
+.tableAnswer__icon {
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 0.2rem 0.3rem;
+  border-radius: var(--radius-sm);
+  line-height: 1;
+}
+
+.tableAnswer__icon:hover:not(:disabled) {
+  background: var(--surface-sunken);
+  color: var(--ink);
+}
+
+.tableAnswer__icon:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.tableAnswer__icon--danger:hover:not(:disabled) {
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+
+.tableAnswer__empty {
+  padding: 0.7rem 0.6rem !important;
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.tableAnswer__foot {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.35rem 0.5rem;
+  border-top: 1px solid var(--line);
+  background: var(--surface-sunken);
 }

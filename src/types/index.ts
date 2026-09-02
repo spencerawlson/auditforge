@@ -556,7 +556,15 @@ export interface PostmortemCompletion {
 // ---------------------------------------------------------------- templates
 
 export type SectionKind = "guided" | "findings" | "evidence";
-export type InputKind = "text" | "textarea" | "date" | "list";
+export type InputKind = "text" | "textarea" | "date" | "list" | "table";
+
+/** A column of a `table` question. `width` is a percent hint used by the PDF layout. */
+export interface TemplateColumn {
+  key: string;
+  label: string;
+  width?: number;
+  help?: string;
+}
 
 export interface TemplateQuestion {
   key: string;
@@ -565,6 +573,10 @@ export interface TemplateQuestion {
   input: InputKind;
   required: boolean;
   placeholder: string;
+  /** Present only when `input` is "table". */
+  columns?: TemplateColumn[];
+  /** Label for the add-row control, e.g. "Add asset". */
+  row_label?: string;
 }
 
 export interface TemplateSection {
@@ -732,9 +744,35 @@ export interface ValidationIssue {
   question_key?: string;
 }
 
+export type CompletenessStatus = "complete" | "incomplete" | "requires_review";
+
+export interface SectionRequirement {
+  key: string;
+  label: string;
+  present: boolean;
+}
+
+export interface Completeness {
+  status: CompletenessStatus;
+  /** Proportion of required sections that have content, 0..=100 (the "92% Complete" figure). */
+  percent: number;
+  /** Professional minimum length for this report kind, in pages. */
+  min_pages: number;
+  /** Estimated rendered length (a text-only lower bound). */
+  estimated_pages: number;
+  /** Whether the estimate meets the minimum. Never blocks finalization. */
+  meets_page_target: boolean;
+  required_sections: SectionRequirement[];
+  /** Labels of required sections that still have no content. */
+  missing_sections: string[];
+  /** Human label for the standard, e.g. "Engagement report". */
+  standard_label: string;
+}
+
 export interface ReportReadiness {
   can_finalize: boolean;
   issues: ValidationIssue[];
+  completeness: Completeness;
 }
 
 export interface NewReport {

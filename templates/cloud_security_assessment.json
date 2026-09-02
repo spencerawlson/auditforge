@@ -139,6 +139,42 @@
           "input": "textarea",
           "required": false,
           "placeholder": ""
+        },
+        {
+          "key": "cloud_assets",
+          "label": "Accounts and resources in scope",
+          "help": "One row per account, subscription, project or managed service assessed. Record the identifier a reader could look up, not a friendly nickname.",
+          "input": "table",
+          "required": false,
+          "placeholder": "",
+          "row_label": "Add resource",
+          "columns": [
+            {
+              "key": "provider",
+              "label": "Provider",
+              "width": 14
+            },
+            {
+              "key": "account",
+              "label": "Account / subscription",
+              "width": 24
+            },
+            {
+              "key": "resource",
+              "label": "Resource / service",
+              "width": 26
+            },
+            {
+              "key": "region",
+              "label": "Region",
+              "width": 14
+            },
+            {
+              "key": "notes",
+              "label": "Notes",
+              "width": 22
+            }
+          ]
         }
       ]
     },
@@ -173,6 +209,32 @@
           "input": "textarea",
           "required": false,
           "placeholder": ""
+        },
+        {
+          "key": "method_tooling",
+          "label": "Tooling used",
+          "help": "The tools the work actually relied on, with versions. A finding is only reproducible if the reader knows what produced it.",
+          "input": "table",
+          "required": false,
+          "placeholder": "",
+          "row_label": "Add tool",
+          "columns": [
+            {
+              "key": "tool",
+              "label": "Tool",
+              "width": 28
+            },
+            {
+              "key": "version",
+              "label": "Version",
+              "width": 16
+            },
+            {
+              "key": "purpose",
+              "label": "Used for",
+              "width": 56
+            }
+          ]
         }
       ]
     },

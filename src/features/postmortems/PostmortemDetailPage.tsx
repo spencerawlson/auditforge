@@ -8,8 +8,10 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
+import { openPath } from "@tauri-apps/plugin-opener";
 
 import { ProvenanceBadge } from "@/components/badges";
+import { CompletenessPanel } from "@/components/CompletenessPanel";
 import { Modal } from "@/components/Modal";
 import { useToast } from "@/components/Toast";
 import {
@@ -53,6 +55,7 @@ export function PostmortemDetailPage() {
   const toast = useToast();
   const postmortem = useAsync(() => api.getPostmortem(id), [id]);
   const questions = useAsync(() => api.postmortemQuestions(), []);
+  const completeness = useAsync(() => api.postmortemCompleteness(id), [id]);
 
   const [answers, setAnswers] = useState<Record<string, { value: string; provenance: Provenance }>>(
     {},
@@ -76,13 +79,21 @@ export function PostmortemDetailPage() {
     }));
     const updated = await api.updatePostmortem(id, { answers: payload });
     postmortem.set(updated);
+    completeness.reload();
     return updated;
   });
 
   const [setStatus, statusState] = useAction(async (status: PostmortemStatus) => {
     const updated = await api.updatePostmortem(id, { status });
     postmortem.set(updated);
+    completeness.reload();
     return updated;
+  });
+
+  const [exportPdf, exportState] = useAction(async () => {
+    const path = await api.renderPostmortemPdf(id);
+    await openPath(path);
+    return path;
   });
 
   const completion = useMemo(() => {
@@ -113,14 +124,26 @@ export function PostmortemDetailPage() {
           </span>
         }
         actions={
-          <Button
-            variant="primary"
-            busy={saveState.busy}
-            disabled={locked}
-            onClick={() => void save().then(() => toast.success("Postmortem saved"))}
-          >
-            Save answers
-          </Button>
+          <div className="row">
+            <Button
+              busy={exportState.busy}
+              onClick={() =>
+                void exportPdf().then((path) => {
+                  if (path) toast.success("Postmortem PDF generated");
+                })
+              }
+            >
+              Export PDF
+            </Button>
+            <Button
+              variant="primary"
+              busy={saveState.busy}
+              disabled={locked}
+              onClick={() => void save().then(() => toast.success("Postmortem saved"))}
+            >
+              Save answers
+            </Button>
+          </div>
         }
       />
 
@@ -131,6 +154,13 @@ export function PostmortemDetailPage() {
       )}
       {saveState.error && <Notice tone="danger">{saveState.error.message}</Notice>}
       {statusState.error && <Notice tone="danger">{statusState.error.message}</Notice>}
+      {exportState.error && <Notice tone="danger">{exportState.error.message}</Notice>}
+
+      {completeness.data && (
+        <Card title="Completeness">
+          <CompletenessPanel completeness={completeness.data} />
+        </Card>
+      )}
 
       <div className="row" style={{ maxWidth: 240 }}>
         <SelectField

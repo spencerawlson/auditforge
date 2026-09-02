@@ -13,6 +13,9 @@ use std::path::Path;
 use rusqlite::{Connection, OptionalExtension};
 use serde::{Deserialize, Serialize};
 
+pub mod tables;
+pub use tables::TemplateColumn;
+
 use crate::database::new_id;
 use crate::error::{Error, Result};
 use crate::models::{
@@ -40,6 +43,9 @@ pub enum InputKind {
     Date,
     /// One item per line.
     List,
+    /// A grid of rows the author adds one at a time. The question declares the columns;
+    /// the answer stores the rows. See [`tables`].
+    Table,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -54,6 +60,18 @@ pub struct TemplateQuestion {
     pub required: bool,
     #[serde(default)]
     pub placeholder: String,
+    /// Columns, for `input: table` only. Empty for every other input kind.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub columns: Vec<TemplateColumn>,
+    /// Label for the "add a row" control, e.g. "Add asset". Falls back to "Add row".
+    #[serde(default, skip_serializing_if = "String::is_empty")]
+    pub row_label: String,
+}
+
+impl TemplateQuestion {
+    pub fn is_table(&self) -> bool {
+        self.input == InputKind::Table
+    }
 }
 
 fn default_input() -> InputKind {
@@ -581,6 +599,8 @@ mod tests {
             input: InputKind::Textarea,
             required: false,
             placeholder: String::new(),
+            columns: Vec::new(),
+            row_label: String::new(),
         });
         template.reconcile(&mut content);
 

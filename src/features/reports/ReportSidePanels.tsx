@@ -14,6 +14,7 @@ import { Button, Card, LoadingBlock, Notice } from "@/components/ui";
 import { useAction, useAsync } from "@/hooks/useAsync";
 import { api } from "@/services/api";
 import { formatDateTime, humanize } from "@/services/format";
+import { CompletenessPanel } from "@/components/CompletenessPanel";
 import type { AiReviewResult, ExportFormat, ReportWorkspace } from "@/types";
 
 // ---------------------------------------------------------------- readiness
@@ -49,6 +50,7 @@ export function FinalizePanel({
   return (
     <Card title="Readiness">
       <div className="stack stack--sm">
+        <CompletenessPanel completeness={workspace.readiness.completeness} />
         {isFinal ? (
           <>
             <Notice tone="success" title="Finalized">

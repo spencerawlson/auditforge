@@ -18,6 +18,7 @@ import type {
   AppSettings,
   AuditEntry,
   AuditQuery,
+  Completeness,
   CorrectiveAction,
   CorrectiveActionUpdate,
   Dashboard,
@@ -206,6 +207,12 @@ export const api = {
     call<CorrectiveAction>("add_corrective_action", { input }),
   updateCorrectiveAction: (id: string, update: CorrectiveActionUpdate) =>
     call<CorrectiveAction>("update_corrective_action", { id, update }),
+  postmortemCompleteness: (id: string) => call<Completeness>("postmortem_completeness", { id }),
+  renderPostmortemPdf: (id: string) => call<string>("render_postmortem_pdf", { id }),
+  postmortemExportFilename: (id: string, format: ExportFormat) =>
+    call<string>("postmortem_export_filename", { id, format }),
+  exportPostmortemTo: (id: string, format: ExportFormat, destination: string) =>
+    call<string>("export_postmortem_to", { id, format, destination }),
 
   // ------------------------------------------------------------ reports
   listTemplates: () => call<TemplateSummary[]>("list_templates"),

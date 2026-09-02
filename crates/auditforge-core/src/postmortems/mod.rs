@@ -430,6 +430,8 @@ fn clamp(raw: &str, max: usize) -> String {
     trimmed.chars().take(max).collect()
 }
 
+pub mod document;
+
 #[cfg(test)]
 mod tests {
     use super::*;

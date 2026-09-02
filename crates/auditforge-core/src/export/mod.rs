@@ -15,7 +15,7 @@ use std::fmt::Write as _;
 
 use crate::error::Result;
 use crate::models::{FindingSnapshot, Provenance, ReportContent};
-use crate::templates::{ReportTemplate, SectionKind};
+use crate::templates::{tables, ReportTemplate, SectionKind, TemplateQuestion};
 
 /// Formats a report can be exported to.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
@@ -169,6 +169,8 @@ pub fn to_html(content: &ReportContent, template: Option<&ReportTemplate>) -> St
                         .and_then(|template| template.question(&section.key, &answer.question_key))
                         .map(|question| question.label.clone())
                         .unwrap_or_else(|| answer.question_key.clone());
+                    let question = template
+                        .and_then(|template| template.question(&section.key, &answer.question_key));
                     let _ = writeln!(out, "<h3>{}</h3>", escape(&label));
                     if answer.provenance == Provenance::MissingInformation {
                         let _ = writeln!(
@@ -176,6 +178,8 @@ pub fn to_html(content: &ReportContent, template: Option<&ReportTemplate>) -> St
                             "<p class=\"gap\">Information required. {}</p>",
                             escape(answer.value.trim())
                         );
+                    } else if let Some(question) = question.filter(|q| q.is_table()) {
+                        out.push_str(&table_html(question, &answer.value));
                     } else {
                         out.push_str(&paragraphs(&answer.value));
                     }
@@ -382,9 +386,13 @@ pub fn to_markdown(content: &ReportContent, template: Option<&ReportTemplate>) -
                         .and_then(|t| t.question(&section.key, &answer.question_key))
                         .map(|question| question.label.clone())
                         .unwrap_or_else(|| answer.question_key.clone());
+                    let question = template
+                        .and_then(|t| t.question(&section.key, &answer.question_key));
                     let _ = writeln!(out, "**{label}**\n");
                     if answer.provenance == Provenance::MissingInformation {
                         let _ = writeln!(out, "> Information required. {}\n", answer.value.trim());
+                    } else if let Some(question) = question.filter(|q| q.is_table()) {
+                        out.push_str(&table_markdown(question, &answer.value));
                     } else {
                         let _ = writeln!(out, "{}\n", answer.value.trim());
                     }
@@ -542,3 +550,60 @@ fn csv_field(value: &str) -> String {
 
 #[cfg(test)]
 mod tests;
+/// A table answer as an HTML table, reusing the markup the findings and evidence tables
+/// already emit so one stylesheet covers all three.
+fn table_html(question: &TemplateQuestion, value: &str) -> String {
+    let table = tables::parse(value);
+    if table.is_empty() || question.columns.is_empty() {
+        return String::new();
+    }
+    let mut out = String::from("<table>\n<thead><tr>");
+    for column in &question.columns {
+        let _ = write!(out, "<th>{}</th>", escape(&column.label));
+    }
+    out.push_str("</tr></thead>\n<tbody>\n");
+    for row in table.as_grid(&question.columns) {
+        out.push_str("<tr>");
+        for cell in row {
+            let _ = write!(out, "<td>{}</td>", escape(&cell));
+        }
+        out.push_str("</tr>\n");
+    }
+    out.push_str("</tbody>\n</table>\n");
+    out
+}
+
+/// A table answer as a pipe table.
+///
+/// Pipes and newlines inside a cell are escaped: either would otherwise split the row
+/// into columns the template never declared, silently corrupting the export.
+fn table_markdown(question: &TemplateQuestion, value: &str) -> String {
+    let table = tables::parse(value);
+    if table.is_empty() || question.columns.is_empty() {
+        return String::new();
+    }
+    fn cell(s: &str) -> String {
+        s.replace('|', "\\|").replace(['\n', '\r'], " ")
+    }
+    let mut out = String::from("| ");
+    out.push_str(
+        &question
+            .columns
+            .iter()
+            .map(|c| cell(&c.label))
+            .collect::<Vec<_>>()
+            .join(" | "),
+    );
+    out.push_str(" |\n|");
+    for _ in &question.columns {
+        out.push_str("---|");
+    }
+    out.push('\n');
+    for row in table.as_grid(&question.columns) {
+        out.push_str("| ");
+        out.push_str(&row.iter().map(|c| cell(c)).collect::<Vec<_>>().join(" | "));
+        out.push_str(" |\n");
+    }
+    out.push('\n');
+    out
+}

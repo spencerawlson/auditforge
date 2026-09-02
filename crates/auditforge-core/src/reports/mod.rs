@@ -460,9 +460,16 @@ fn apply_answers(
                     input.question_key, input.section_key
                 ))
             })?;
-        let value = clamp(&input.value, MAX_ANSWER);
+        let mut value = clamp(&input.value, MAX_ANSWER);
         if question.input == templates::InputKind::Date && !value.trim().is_empty() {
             crate::models::validate_date(&value, &question.label)?;
+        }
+        // Canonicalize a table here rather than trusting the client: blank rows dropped,
+        // cells trimmed, and a table with nothing in it collapsed to the empty string so
+        // `is_blank` — which the readiness gate and every renderer use — reports it as
+        // unanswered instead of as a filled-in question holding "[]".
+        if question.is_table() {
+            value = templates::tables::normalize(&value);
         }
 
         let section = content
@@ -811,9 +818,22 @@ pub fn readiness(conn: &Connection, report_id: &str) -> Result<ReportReadiness> 
     let can_finalize = !issues
         .iter()
         .any(|issue| issue.severity == IssueSeverity::Blocker);
+
+    // Completeness is advisory: it tells the author how much of the required structure is
+    // filled in and whether the document meets the professional length target for its kind.
+    // It never changes `can_finalize` - a short-but-complete report is flagged for review,
+    // not refused (see `reports::standards`).
+    let estimated_pages = crate::pdf::estimate_pages(
+        &version.content,
+        Some(&template),
+        &crate::pdf::RenderOptions::default(),
+    );
+    let completeness = standards::evaluate(&version.content, Some(&template), estimated_pages);
+
     Ok(ReportReadiness {
         can_finalize,
         issues,
+        completeness,
     })
 }
 
@@ -1015,6 +1035,8 @@ fn clamp(raw: &str, max: usize) -> String {
     }
     raw.chars().take(max).collect()
 }
+
+pub mod standards;
 
 #[cfg(test)]
 mod tests;

@@ -2,8 +2,10 @@
 //! log. The dashboard lives here too, since it is a read across all of them.
 
 use auditforge_core::app::Dashboard;
+use auditforge_core::export::ExportFormat;
 use auditforge_core::models::*;
 use auditforge_core::postmortems::{PostmortemCompletion, PostmortemUpdate, UnansweredQuestion};
+use auditforge_core::reports::standards::Completeness;
 use auditforge_core::search::{SearchHit, SearchQuery};
 use auditforge_core::{audit, engagements, evidence, findings, incidents, postmortems, search};
 use tauri::State;
@@ -302,6 +304,75 @@ pub fn postmortem_completion(
     state.actor()?;
     let postmortem = state.app.db.with_conn(|conn| postmortems::get(conn, &id))?;
     Ok(postmortems::completion(&postmortem))
+}
+
+/// How complete the postmortem is against the professional standard for its kind: which
+/// required sections are filled in, the completeness percentage, and whether it meets the
+/// four-page minimum. Advisory - it never blocks anything.
+#[tauri::command]
+pub fn postmortem_completeness(
+    state: State<'_, AppState>,
+    id: String,
+) -> CommandResult<Completeness> {
+    state.actor()?;
+    Ok(state.app.postmortem_completeness(&id)?)
+}
+
+/// Render the postmortem to a document in the exports directory and return its path, so the
+/// caller can open it in the platform's own viewer.
+#[tauri::command]
+pub async fn render_postmortem_pdf(state: State<'_, AppState>, id: String) -> CommandResult<String> {
+    let actor = state.actor()?;
+    let app = state.app.clone();
+    blocking(move || {
+        let exported = app.export_postmortem(&actor, &id, ExportFormat::Pdf)?;
+        std::fs::create_dir_all(&app.paths.exports_dir)?;
+        let path = app.paths.exports_dir.join(&exported.filename);
+        std::fs::write(&path, &exported.bytes)?;
+        Ok(path.display().to_string())
+    })
+    .await
+}
+
+/// Write a postmortem export to a path the user chose in the save dialog.
+#[tauri::command]
+pub async fn export_postmortem_to(
+    state: State<'_, AppState>,
+    id: String,
+    format: ExportFormat,
+    destination: String,
+) -> CommandResult<String> {
+    let actor = state.actor()?;
+    let app = state.app.clone();
+    blocking(move || {
+        let exported = app.export_postmortem(&actor, &id, format)?;
+        std::fs::write(&destination, &exported.bytes)?;
+        Ok(destination)
+    })
+    .await
+}
+
+/// A suggested filename for the postmortem save dialog.
+#[tauri::command]
+pub fn postmortem_export_filename(
+    state: State<'_, AppState>,
+    id: String,
+    format: ExportFormat,
+) -> CommandResult<String> {
+    state.actor()?;
+    let postmortem = state.app.db.with_conn(|conn| postmortems::get(conn, &id))?;
+    let content = postmortems::document::to_content(
+        &postmortem,
+        auditforge_core::models::AuthorSnapshot {
+            user_id: String::new(),
+            username: String::new(),
+            full_name: String::new(),
+            organization: String::new(),
+            job_title: String::new(),
+            captured_at: auditforge_core::models::Timestamp::now(),
+        },
+    );
+    Ok(auditforge_core::export::suggested_filename(&content, format))
 }
 
 #[tauri::command]
